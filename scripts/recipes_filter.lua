@@ -1,73 +1,84 @@
 local size = GetModConfigData("ICON_SIZE")
-local CRAFTING_FILTERS = _G.CRAFTING_FILTERS
 local MOD_LIST = {}
+local modimport = modimport
+local GetModConfigData = GetModConfigData
+
+GLOBAL.setfenv(1, GLOBAL)
+
 local function GetCharacterAtlas(owner)
 	-- mod character avatars for the crafting menu should be placed in "/images/crafting_menu_avatars/avatar_<name>.xml" with image "avatar_<name>.tex"
 	-- if the mod character does not have a specific crafting menu icon, then it will fallback to "/images/avatars/avatar_<name>.xml" with image "avatar_<name>.tex"
 	-- these paths will also respect being redirected via MOD_CRAFTING_AVATAR_LOCATIONS or MOD_AVATAR_LOCATIONS
-	
+
 	local atlas_name = nil
 	if GetModConfigData("CHAR_ICON") == 2 and owner ~= nil then
-		atlas_name = (owner.prefab == "wanda" and "images/hud2.xml" or softresolvefilepath("images/avatars/self_inspect_".. owner.prefab ..".xml")) or "images/hud.xml"
-	elseif owner ~= nil and table.contains(_G.MODCHARACTERLIST, owner.prefab) then
-		atlas_name = (_G.MOD_CRAFTING_AVATAR_LOCATIONS[owner.prefab] or _G.MOD_CRAFTING_AVATAR_LOCATIONS.Default) .. "avatar_" .. owner.prefab .. ".xml"
+		atlas_name = (owner.prefab == "wanda" and "images/hud2.xml" or softresolvefilepath("images/avatars/self_inspect_" .. owner.prefab .. ".xml")) or
+		"images/hud.xml"
+	elseif owner ~= nil and table.contains(MODCHARACTERLIST, owner.prefab) then
+		atlas_name = (MOD_CRAFTING_AVATAR_LOCATIONS[owner.prefab] or MOD_CRAFTING_AVATAR_LOCATIONS.Default) ..
+		"avatar_" .. owner.prefab .. ".xml"
 		if softresolvefilepath(atlas_name) == nil then
-			atlas_name = (_G.MOD_AVATAR_LOCATIONS[owner.prefab] or _G.MOD_AVATAR_LOCATIONS.Default) .. "avatar_" .. owner.prefab .. ".xml"
+			atlas_name = (MOD_AVATAR_LOCATIONS[owner.prefab] or MOD_AVATAR_LOCATIONS.Default) ..
+			"avatar_" .. owner.prefab .. ".xml"
 		end
 	elseif GetModConfigData("CHAR_ICON") == 1 then
 		atlas_name = resolvefilepath("images/crafting_menu_avatars_o.xml")
-	else atlas_name = resolvefilepath("images/crafting_menu_avatars.xml") end
+	else
+		atlas_name = resolvefilepath("images/crafting_menu_avatars.xml")
+	end
 	return atlas_name
 end
 
- local function GetCharacterImage(owner)
+local function GetCharacterImage(owner)
 	if GetModConfigData("CHAR_ICON") == 2 then
-		return owner ~= nil and ("self_inspect_"..owner.prefab..".tex") or "self_inspect_mod.tex"
-	else return owner ~= nil and ("avatar_".. owner.prefab ..".tex") or "avatar_mod.tex" end
+		return owner ~= nil and ("self_inspect_" .. owner.prefab .. ".tex") or "self_inspect_mod.tex"
+	else
+		return owner ~= nil and ("avatar_" .. owner.prefab .. ".tex") or "avatar_mod.tex"
+	end
 end
 
 local function GetCraftingMenuAtlas()
-	return resolvefilepath(_G.CRAFTING_ICONS_ATLAS)
+	return resolvefilepath(CRAFTING_ICONS_ATLAS)
 end
 
 if not GetModConfigData("OLD_NEW") then
-	if _G.CRAFTING_FILTER_DEFS[5].name == "CHARACTER" then
-		_G.CRAFTING_FILTER_DEFS[5].atlas = GetCharacterAtlas
-		_G.CRAFTING_FILTER_DEFS[5].image = GetCharacterImage
-		_G.CRAFTING_FILTER_DEFS[5].image_size = size
+	if CRAFTING_FILTER_DEFS[5].name == "CHARACTER" then
+		CRAFTING_FILTER_DEFS[5].atlas = GetCharacterAtlas
+		CRAFTING_FILTER_DEFS[5].image = GetCharacterImage
+		CRAFTING_FILTER_DEFS[5].image_size = size
 	end
-else --- Old/New mode ---
+else                    --- Old/New mode ---
 	modimport("scripts/strings")
-	_G.CRAFTING_FILTER_DEFS =	--Old filter type
+	CRAFTING_FILTER_DEFS = --Old filter type
 	{
-		{name = "FAVORITES",			atlas = GetCraftingMenuAtlas,	image = "filter_favorites.tex",		custom_pos = true},
-		{name = "CRAFTING_STATION",		atlas = GetCraftingMenuAtlas,	image = "filter_none.tex",			custom_pos = true, recipes = CRAFTING_FILTERS.CRAFTING_STATION.recipes},
-		{name = "SPECIAL_EVENT",		atlas = GetCraftingMenuAtlas,	image = "filter_events.tex",		custom_pos = true, recipes = CRAFTING_FILTERS.SPECIAL_EVENT.recipes},
-		{name = "MODS",					atlas = GetCraftingMenuAtlas,	image = "filter_modded.tex",		custom_pos = true, recipes = CRAFTING_FILTERS.MODS.recipes},
-		
-		{name = "TOOLS",				atlas = GetCraftingMenuAtlas,	image = "filter_tool.tex",			},
-		{name = "LIGHT",				atlas = GetCraftingMenuAtlas,	image = "filter_fire.tex", 			},
-		{name = "RESTORATION",			atlas = GetCraftingMenuAtlas,	image = "filter_health.tex",		},
-		{name = "GARDENING",			atlas = GetCraftingMenuAtlas,	image = "filter_gardening.tex",		},
-		{name = "PROTOTYPERS",			atlas = GetCraftingMenuAtlas,	image = "filter_science.tex",		},
-		{name = "WEAPONS",				atlas = GetCraftingMenuAtlas,	image = "filter_weapon.tex",		},
-		{name = "STRUCTURES",			atlas = GetCraftingMenuAtlas,	image = "filter_structure.tex",		},
-		{name = "DECOR",				atlas = GetCraftingMenuAtlas,	image = "filter_cosmetic.tex",		},
-		{name = "SEAFARING",			atlas = GetCraftingMenuAtlas,	image = "filter_sailing.tex",		},
-		{name = "REFINE",				atlas = GetCraftingMenuAtlas,	image = "filter_refine.tex",		},
-		{name = "MAGIC",				atlas = GetCraftingMenuAtlas,	image = "filter_skull.tex",			},
-		{name = "CLOTHING",				atlas = GetCraftingMenuAtlas,	image = "filter_warable.tex",		},
-		{name = "FISHING",				atlas = GetCraftingMenuAtlas,	image = "filter_fishing.tex",		},
-		{name = "CHARACTER",			atlas = GetCharacterAtlas,		image = GetCharacterImage, 			image_size = size, recipes = CRAFTING_FILTERS.CHARACTER.recipes},
-		{name = "EVERYTHING",			atlas = GetCraftingMenuAtlas,	image = "filter_none.tex",			show_hidden = true},
+		{ name = "FAVORITES",        atlas = GetCraftingMenuAtlas, image = "filter_favorites.tex", custom_pos = true },
+		{ name = "CRAFTING_STATION", atlas = GetCraftingMenuAtlas, image = "filter_none.tex",      custom_pos = true, recipes = CRAFTING_FILTERS.CRAFTING_STATION.recipes },
+		{ name = "SPECIAL_EVENT",    atlas = GetCraftingMenuAtlas, image = "filter_events.tex",    custom_pos = true, recipes = CRAFTING_FILTERS.SPECIAL_EVENT.recipes },
+		{ name = "MODS",             atlas = GetCraftingMenuAtlas, image = "filter_modded.tex",    custom_pos = true, recipes = CRAFTING_FILTERS.MODS.recipes },
+
+		{ name = "TOOLS",            atlas = GetCraftingMenuAtlas, image = "filter_tool.tex", },
+		{ name = "LIGHT",            atlas = GetCraftingMenuAtlas, image = "filter_fire.tex", },
+		{ name = "RESTORATION",      atlas = GetCraftingMenuAtlas, image = "filter_health.tex", },
+		{ name = "GARDENING",        atlas = GetCraftingMenuAtlas, image = "filter_gardening.tex", },
+		{ name = "PROTOTYPERS",      atlas = GetCraftingMenuAtlas, image = "filter_science.tex", },
+		{ name = "WEAPONS",          atlas = GetCraftingMenuAtlas, image = "filter_weapon.tex", },
+		{ name = "STRUCTURES",       atlas = GetCraftingMenuAtlas, image = "filter_structure.tex", },
+		{ name = "DECOR",            atlas = GetCraftingMenuAtlas, image = "filter_cosmetic.tex", },
+		{ name = "SEAFARING",        atlas = GetCraftingMenuAtlas, image = "filter_sailing.tex", },
+		{ name = "REFINE",           atlas = GetCraftingMenuAtlas, image = "filter_refine.tex", },
+		{ name = "MAGIC",            atlas = GetCraftingMenuAtlas, image = "filter_skull.tex", },
+		{ name = "CLOTHING",         atlas = GetCraftingMenuAtlas, image = "filter_warable.tex", },
+		{ name = "FISHING",          atlas = GetCraftingMenuAtlas, image = "filter_fishing.tex", },
+		{ name = "CHARACTER",        atlas = GetCharacterAtlas,    image = GetCharacterImage,      image_size = size, recipes = CRAFTING_FILTERS.CHARACTER.recipes },
+		{ name = "EVERYTHING",       atlas = GetCraftingMenuAtlas, image = "filter_none.tex",      show_hidden = true },
 	}
-	for i, v in ipairs(_G.CRAFTING_FILTER_DEFS) do
-		--if GetModConfigData("RECIPE_SUP") and (i > 4 and i < 18) then 
-		--	MOD_LIST[v.name] = {recipes={_G.unpack(CRAFTING_FILTERS[v.name].recipes), _G.unpack(CRAFTING_FILTERS["ARMOUR"].recipes)}} 
+	for i, v in ipairs(CRAFTING_FILTER_DEFS) do
+		--if GetModConfigData("RECIPE_SUP") and (i > 4 and i < 18) then
+		--	MOD_LIST[v.name] = {recipes={unpack(CRAFTING_FILTERS[v.name].recipes), unpack(CRAFTING_FILTERS["ARMOUR"].recipes)}}
 		--end -- Recipe2 support
 		CRAFTING_FILTERS[v.name] = v
 	end
-	
+
 	CRAFTING_FILTERS.TOOLS.recipes =
 	{
 		"axe",
@@ -76,9 +87,9 @@ else --- Old/New mode ---
 		"goldenmachete",
 		"pickaxe",
 		"goldenpickaxe",
-		
+
 		"shears", --TE
-		
+
 		"shovel",
 		"goldenshovel",
 
@@ -86,18 +97,18 @@ else --- Old/New mode ---
 		"golden_farm_hoe",
 
 		"hammer",
-		"pitchfork",	
+		"pitchfork",
 		"goldenpitchfork",
 		"antlionhat",
 
 		"wateringcan",
 		"premiumwateringcan",
-	
+
 		"telescope",
 		"supertelescope",
-		
+
 		"wagpunkbits_kit",
-		
+
 		"razor",
 		"featherpencil",
 		"pocket_scale",
@@ -115,8 +126,8 @@ else --- Old/New mode ---
 	{
 		"campfire",
 		"firepit",
-		"chiminea",-- TE
-		"sea_chiminea","porto_sea_chiminea", --IA TE
+		"chiminea",                        -- TE
+		"sea_chiminea", "porto_sea_chiminea", --IA TE
 		"lighter",
 		"torch",
 		"tarlamp",
@@ -129,14 +140,14 @@ else --- Old/New mode ---
 		"minerhat",
 		"molehat",
 		"bathat", --TE
-		
+
 		"pumpkin_lantern",
 		"lantern",
 		"bottlelantern",
-		
+
 		"boat_torch",
 		"boat_lantern",
-		
+
 		"mushroom_light",
 		"mushroom_light2",
 		"buoy", "porto_buoy", -- IA TE
@@ -147,7 +158,7 @@ else --- Old/New mode ---
 		"madscience_lab",
 		"researchlab",
 		"researchlab2",
-		"sea_lab", "porto_researchlab5",-- IA TE
+		"sea_lab", "porto_researchlab5", -- IA TE
 		"transistor",
 		--"diviningrod",
 		"seafaring_prototyper",
@@ -158,14 +169,14 @@ else --- Old/New mode ---
 		"gunpowder",
 		"lightning_rod",
 		"firesuppressor",
-		
+
 		"smelter", --TE
 		"basefan", --TE
 		"icemaker",
 		"quackendrill",
-		
+
 		"chestupgrade_stacksize",
-		
+
 		"turfcraftingstation",
 		"carpentry_station",
 		"moon_device_construction1",
@@ -183,14 +194,14 @@ else --- Old/New mode ---
 		"goldnugget",
 		"waxpaper",
 		"beeswax",
-		
+
 		-- "venomgland", --TE
 		"nubbin",
 		"marblebean",
 		-- "clawpalmtree_sapling", --TE
-		
+
 		"ice",
-		"ia_messagebottleempty","messagebottleempty1", --IA TE
+		"ia_messagebottleempty", "messagebottleempty1", --IA TE
 		"bearger_fur",
 		"nightmarefuel",
 		"purplegem",
@@ -208,38 +219,38 @@ else --- Old/New mode ---
 		"wathgrithr_shield",
 		"slingshot",
 		"spear",
-		
+
 		"halberd", --TE
 		"spear_poison",
 		"cork_bat", --TE
-		
+
 		"hambat",
 		"nightstick",
 		"whip",
 		"armorgrass",
 		"armorwood",
-		"armorseashell","armor_seashell",-- IA TE
+		"armorseashell", "armor_seashell", -- IA TE
 		"armormarble",
 		"armordreadstone",
 		"dreadstonehat",
 		"armorwagpunk",
 		"wagpunkhat",
-		"armorlimestone", "armor_limestone",-- IA TE
+		"armorlimestone", "armor_limestone", -- IA TE
 		"armorcactus",
-		"armor_weevole", --TE
-		
-		"antmaskhat", --TE
-		"antsuit", --TE
-		
+		"armor_weevole",                   --TE
+
+		"antmaskhat",                      --TE
+		"antsuit",                         --TE
+
 		"footballhat",
 		"oxhat",
 		"cookiecutterhat",
-		
-		"metalplatehat", --TE
+
+		"metalplatehat",  --TE
 		"armor_metalplate", --TE
-		
+
 		"sleepbomb",
-	
+
 		"blowdart_sleep",
 		"blowdart_fire",
 		"blowdart_pipe",
@@ -255,8 +266,8 @@ else --- Old/New mode ---
 		"armordragonfly",
 		"staff_tornado",
 		"staff_lunarplant",
-	
-		"trident",	
+
+		"trident",
 		"fence_rotator",
 	}
 
@@ -275,17 +286,17 @@ else --- Old/New mode ---
 		"beefalohat",
 		"winterhat",
 		"catcoonhat",
-		
+
 		"gasmaskhat", --TE
-		
+
 		"kelphat",
 		"goggleshat",
 		"deserthat",
 		"moonstorm_goggleshat",
 		"brainjellyhat",
 		"watermelonhat",
-		"pithhat", --TE
-		"thunderhat", --TE
+		"pithhat",      --TE
+		"thunderhat",   --TE
 		"shark_teethhat", --IA
 		"icehat",
 		"beehat",
@@ -321,7 +332,7 @@ else --- Old/New mode ---
 		"healingsalve_acid",
 		"tillweedsalve",
 		"bandage",
-		"antivenom","antidote",-- IA TE
+		"antivenom", "antidote", -- IA TE
 		"lifeinjector",
 		"bernie_inactive",
 		"trap",
@@ -336,7 +347,7 @@ else --- Old/New mode ---
 		"grass_umbrella",
 		"palmleaf_umbrella",
 		"umbrella",
-		
+
 		"bugrepellent", --TE
 		"waterballoon",
 		"compass",
@@ -357,11 +368,11 @@ else --- Old/New mode ---
 		"siestahut",
 		"palmleaf_hut",
 		"portabletent_item",
-		"doydoynest",-- no TE
+		"doydoynest", -- no TE
 		--"antler",-- TE
 		"minifan",
 		"featherfan",
-		"doydoyfan","tropicalfan",-- IA TE
+		"doydoyfan", "tropicalfan", -- IA TE
 	}
 
 	CRAFTING_FILTERS.GARDENING.recipes =
@@ -373,11 +384,11 @@ else --- Old/New mode ---
 		"saltbox",
 
 		"farm_plow_item",
-		"fish_farm", "porto_fish_farm",-- IA TE
+		"fish_farm", "porto_fish_farm", -- IA TE
 		"seatrap",
 		"mussel_bed",
 		"mussel_stick",
-		"sprinkler1",-- TE
+		"sprinkler1", -- TE
 		"fertilizer",
 		"soil_amender",
 		"treegrowthsolution",
@@ -396,7 +407,7 @@ else --- Old/New mode ---
 	CRAFTING_FILTERS.FISHING.recipes =
 	{
 		"tacklestation",
-		
+
 		"oceanfishingbobber_ball",
 		"oceanfishingbobber_oval",
 		"oceanfishingbobber_crow",
@@ -416,7 +427,7 @@ else --- Old/New mode ---
 		"oceanfishinglure_hermit_snow",
 		"oceanfishinglure_hermit_drowsy",
 		"oceanfishinglure_hermit_heavy",
-		
+
 		"chum",
 	}
 
@@ -424,11 +435,11 @@ else --- Old/New mode ---
 	{
 		"boat_grass_item",
 		"boat_item",
-		"boat_lograft","porto_lograft_old", --IA TE
-		"boat_raft", "porto_raft_old", --IA TE
-		"boat_row", "porto_rowboat", --IA TE
-		"corkboatitem", --TE
-		"boat_cargo", "porto_cargoboat", --IA TE
+		"boat_lograft", "porto_lograft_old",   --IA TE
+		"boat_raft", "porto_raft_old",         --IA TE
+		"boat_row", "porto_rowboat",           --IA TE
+		"corkboatitem",                        --TE
+		"boat_cargo", "porto_cargoboat",       --IA TE
 		"boat_armoured", "porto_armouredboat", --IA TE
 		"boat_encrusted", "porto_encrustedboat", --IA TE
 		"boatpatch_kelp",
@@ -441,11 +452,11 @@ else --- Old/New mode ---
 		"boat_rotator_kit",
 		"mast_item",
 		"mast_malbatross_item",
-		"sail_palmleaf", "sail", --IA TE
-		"sail_cloth", "clothsail", -- IA TE
+		"sail_palmleaf", "sail",         --IA TE
+		"sail_cloth", "clothsail",       -- IA TE
 		"sail_snakeskin", "snakeskinsail", --IA TE
-		"sail_feather", "feathersail", --IA TE
-		"malbatrossail", --TE
+		"sail_feather", "feathersail",   --IA TE
+		"malbatrossail",                 --TE
 		"ironwind",
 
 		"boat_bumper_kelp_kit",
@@ -471,12 +482,12 @@ else --- Old/New mode ---
 		"winch",
 		"waterpump",
 		"boat_magnet_kit",
-		"boat_magnet_beacon",	
+		"boat_magnet_beacon",
 
 		"dock_kit",
 		"dock_woodposts_item",
 		"tar_extractor", "porto_tar_extractor", -- IA TE
-		"sea_yard", "porto_sea_yard",-- IA TE
+		"sea_yard", "porto_sea_yard",         -- IA TE
 
 		"chesspiece_anchor_sketch",
 	}
@@ -505,15 +516,15 @@ else --- Old/New mode ---
 		"sisturn",
 
 		"treasurechest",
-		"waterchest", "porto_waterchest1",-- IA TE
-		"corkchest", --TE PL
+		"waterchest", "porto_waterchest1", -- IA TE
+		"corkchest",                     --TE PL
 		"homesign",
 		"arrowsign_post",
 		"minisign_item",
 		"minisign",
-		
+
 		"rope_bridge_kit",
-		
+
 		"fence_gate_item",
 		"fence_item",
 		"wall_hay_item",
@@ -536,13 +547,13 @@ else --- Old/New mode ---
 		"birdcage",
 		"scarecrow",
 		"sewing_mannequin",
-		
+
 		"punchingbag",
 		"punchingbag_lunar",
 		"punchingbag_shadow",
 
-		"sandbagsmall_item","sandbag_item",-- IA TE
-		"sandcastle", "sand_castle", --IA TE
+		"sandbagsmall_item", "sandbag_item", -- IA TE
+		"sandcastle", "sand_castle",      --IA TE
 		"dragonflychest",
 		"magician_chest",
 		"dragonflyfurnace",
@@ -550,7 +561,7 @@ else --- Old/New mode ---
 		"support_pillar_scaffold",
 		"archive_resonator_item",
 	}
-	
+
 	CRAFTING_FILTERS.DECOR.recipes =
 	{
 		"reskin_tool",
@@ -559,7 +570,7 @@ else --- Old/New mode ---
 		"endtable",
 		"trophyscale_fish",
 		"trophyscale_oversizedveggies",
-		
+
 		"pirate_flag_pole",
 
 		"turf_road",
@@ -567,7 +578,7 @@ else --- Old/New mode ---
 		"turf_woodfloor",
 		"turf_cotl_gold",
 		"turf_checkerfloor",
-		"turf_carpetfloor",	
+		"turf_carpetfloor",
 		"turf_carpetfloor2",
 		"turf_mosaic_red",
 		"turf_mosaic_blue",
@@ -580,13 +591,13 @@ else --- Old/New mode ---
 		"turf_ruinstrim",
 		"turf_ruinstrim_glow",
 		"turf_archive",
-		
-		"turf_snakeskin", -- ?`
-		"turf_beard_hair", --?
-		"turf_lawn", --?
-		"turf_fields", --?
+
+		"turf_snakeskin",             -- ?`
+		"turf_beard_hair",            --?
+		"turf_lawn",                  --?
+		"turf_fields",                --?
 		"turf_deeprainforest_nocanopy", --?
-		
+
 		"turf_pebblebeach",
 		"turf_shellbeach",
 		"turf_monkey_ground",
@@ -605,23 +616,23 @@ else --- Old/New mode ---
 		"turf_fungus",
 		"turf_fungus_red",
 		"turf_fungus_green",
-		"turf_beard_rug",	
-		
---IA
+		"turf_beard_rug",
+
+		--IA
 		"turf_jungle",
 		"turf_meadow",
 		"turf_tidalmarsh",
 		"turf_magmafield",
 		"turf_ash",
 		"turf_volcano",
-		
+
 		"ruinsrelic_plate",
 		"ruinsrelic_chipbowl",
 		"ruinsrelic_bowl",
 		"ruinsrelic_vase",
 		"ruinsrelic_chair",
 		"ruinsrelic_table",
-		
+
 		"phonograph",
 		"record",
 
@@ -656,16 +667,16 @@ else --- Old/New mode ---
 		"onemanband",
 		"nightlight",
 		"armor_sanity",
-		
+
 		"armorvortexcloak", --PL
 		"living_artifact", --PL
-		
+
 		"nightsword",
 		"batbat",
 		"armorslurper",
 
 		"roottrunk_child", --TE, PL
-		
+
 		"amulet",
 		"blueamulet",
 		"purpleamulet",
@@ -688,15 +699,15 @@ else --- Old/New mode ---
 			filter.default_sort_values = table.invert(filter.recipes)
 		end
 	end
--- RECIPE2 SUPPORT --
+	-- RECIPE2 SUPPORT --
 	--if GetModConfigData("RECIPE_SUP") then
 	--	for name, filter in pairs(MOD_LIST) do
 	--		for _, recipe in ipairs(filter.recipes) do
-	--			if _G.AllRecipes[recipe].rpc_id > 1000 then
+	--			if AllRecipes[recipe].rpc_id > 1000 then
 	--				print("WORK?",name, recipe)
 	--				AddRecipeToFilter(recipe, name)
 	--end	end end end
---------------------
-	CRAFTING_FILTERS.FAVORITES.recipes = function() return _G.TheCraftingMenuProfile:GetFavorites() end
-	CRAFTING_FILTERS.FAVORITES.default_sort_values = function() return _G.TheCraftingMenuProfile:GetFavoritesOrder() end
+	--------------------
+	CRAFTING_FILTERS.FAVORITES.recipes = function() return TheCraftingMenuProfile:GetFavorites() end
+	CRAFTING_FILTERS.FAVORITES.default_sort_values = function() return TheCraftingMenuProfile:GetFavoritesOrder() end
 end
