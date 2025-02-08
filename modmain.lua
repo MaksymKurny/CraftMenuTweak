@@ -4,6 +4,8 @@ local Widget = require "widgets/widget"
 local Text = require "widgets/text"
 local Grid = require "widgets/grid"
 local ThreeSlice = require "widgets/threeslice"
+local qcmode = GetModConfigData("FAST_CRAFT")
+local TEMPLATES = require "widgets/redux/templates"
 local CraftingMenuIngredients = require "widgets/redux/craftingmenu_ingredients"
 
 Assets = {
@@ -12,11 +14,18 @@ Assets = {
 }
 
 local Assets = Assets
+local env = env
 local modimport = modimport
 local AddClassPostConstruct = AddClassPostConstruct
 local GetModConfigData = GetModConfigData
 
+
+-- Functional key --
+local FN_KEYS = GetModConfigData("FUN_KEY")
+if type(FN_KEYS) == "string" and GLOBAL:rawget(FN_KEYS) then FN_KEYS = GLOBAL[FN_KEYS] end
+
 GLOBAL.setfenv(1, GLOBAL)
+
 
 --- Icons ---
 if GetModConfigData("ICON_PACK") == 1 then
@@ -69,12 +78,9 @@ AddClassPostConstruct("widgets/redux/craftingmenu_details",
 		end
 	end)
 
--- Craft 1 click and favorite sort --
-local qcmode = GetModConfigData("FAST_CRAFT")
-local TEMPLATES = require "widgets/redux/templates"
-
+-- Craft 1 click and favorite sort craft count --
 local function Modded(self, w)
-	if TheInput:IsKeyDown(GetModConfigData("FUN_KEY")) and self.current_filter_name == "FAVORITES" then
+	if TheInput:IsKeyDown(FN_KEYS) and self.current_filter_name == "FAVORITES" then
 		TheCraftingMenuProfile:RemoveFavorite(w.data.recipe.name)
 		TheCraftingMenuProfile:AddFavorite(w.data.recipe.name)
 		self:OnFavoriteChanged(w.data.recipe.name)
@@ -549,8 +555,10 @@ end
 --- Compact pinn bar ---
 if GetModConfigData("COMP_PINBAR") then
 	TUNING.MAX_PINNED_RECIPES = 12
-	local PinSlot = require "widgets/redux/craftingmenu_pinslot"
-	AddClassPostConstruct("widgets/redux/craftingmenu_pinbar", function(self, owner, crafting_hud, height)
+end
+AddClassPostConstruct("widgets/redux/craftingmenu_pinbar", function(self, owner, crafting_hud, height)
+	if GetModConfigData("COMP_PINBAR") then
+		local PinSlot = require "widgets/redux/craftingmenu_pinslot"
 		local buttonsize = 60 -- 64
 		local y = 241       -- 378 -76 -61
 		self.pin_slots = {}
@@ -589,8 +597,24 @@ if GetModConfigData("COMP_PINBAR") then
 		end
 
 		self.focus_forward = self.pin_slots[1]
-	end)
-end
+	end
+
+	if GetModConfigData("CHR_PINBAR") then
+		local _RefreshPinnedRecipes = self.RefreshPinnedRecipes
+		self.RefreshPinnedRecipes = function(self)
+			_RefreshPinnedRecipes(self)
+			local currentPage = TheCraftingMenuProfile:GetCurrentPage()
+			self.page_spinner.page_text:SetString(tostring(currentPage <= 9 and currentPage or "C"))
+		end
+
+		local _Refresh = self.Refresh
+		self.Refresh = function(self)
+			_Refresh(self)
+			local currentPage = TheCraftingMenuProfile:GetCurrentPage()
+			self.page_spinner.page_text:SetString(tostring(currentPage <= 9 and currentPage or "C"))
+		end
+	end
+end)
 
 -- Tabs client_only port --
 if GetModConfigData("TAB_SUPPORT") then
@@ -613,7 +637,7 @@ if GetModConfigData("TAB_SUPPORT") then
 				return
 			end
 
-			if self.craftingmenu:IsCraftingOpen() and not self.unpin_button.focus and self.recipe_name == nil and TheInput:IsKeyDown(GetModConfigData("FUN_KEY")) then
+			if self.craftingmenu:IsCraftingOpen() and not self.unpin_button.focus and self.recipe_name == nil and TheInput:IsKeyDown(FN_KEYS) then
 				local curr_filter = "filter_" .. self.craftingmenu.craftingmenu.current_filter_name
 				self:SetRecipe(curr_filter, nil)
 				return
@@ -1013,16 +1037,49 @@ if GetModConfigData("COMP_CM") then
 			self.pinbar:KillAllChildren()
 			self.pinbar = self.pb_root:AddChild(CraftingMenuPinBar(owner, self, HEIGHT))
 			self.pinbar:SetPosition(0, 0)
-			self.pinbar:MoveToBack()
+			self.pb_root:MoveToBack()
 		end
 
 		if GetModConfigData("COMP_CM") then
 			self.pinbar:SetPosition(0, 40)
 			local y_offset = IsSplitScreen() and -50 or 0
-			self.openhint:SetPosition(is_left_aligned and 28 or -28, 34 + HEIGHT/2 + y_offset + 40)
+			self.openhint:SetPosition(is_left_aligned and 28 or -28, 34 + HEIGHT / 2 + y_offset + 40)
 		end
 
 		self:RefreshControllers(TheInput:ControllerAttached())
 		self.craftingmenu:DoFocusHookups()
+	end)
+end
+
+if GetModConfigData("CHR_PINBAR") then
+	AddClassPostConstruct("craftingmenuprofile", function(self)
+		local function findIndex(tbl, value)
+			for index, v in ipairs(tbl) do
+				if v == value then
+					return index
+				end
+			end
+			return 99
+		end
+		function self:NextPage()
+			local next_page = self.pinned_page + 1
+			if next_page == Profile:GetCraftingNumPinnedPages() + 1 and table.contains(env.CHARACTERLIST, ThePlayer.prefab) then
+				self:SetCurrentPage(9 + findIndex(env.CHARACTERLIST, ThePlayer.prefab))
+			else
+				self:SetCurrentPage(next_page <= Profile:GetCraftingNumPinnedPages() and next_page or 1)
+			end
+		end
+
+		function self:PrevPage()
+			local prev_page = self.pinned_page - 1
+			if prev_page > Profile:GetCraftingNumPinnedPages() then
+				prev_page = Profile:GetCraftingNumPinnedPages()
+			end
+			if prev_page == 0 and table.contains(env.CHARACTERLIST, ThePlayer.prefab) then
+				self:SetCurrentPage(9 + findIndex(env.CHARACTERLIST, ThePlayer.prefab))
+			else
+				self:SetCurrentPage(prev_page >= 1 and prev_page or Profile:GetCraftingNumPinnedPages())
+			end
+		end
 	end)
 end
