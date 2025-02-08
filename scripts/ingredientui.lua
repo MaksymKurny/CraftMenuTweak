@@ -10,7 +10,7 @@ local GetModConfigData = GetModConfigData
 
 GLOBAL.setfenv(1, GLOBAL)
 
-AddClassPostConstruct("widgets/ingredientui", function(self, atlas, image, quantity, on_hand, has_enough, name, owner, recipe_type, quant_text_scale, ingredient_recipe)		
+AddClassPostConstruct("widgets/ingredientui", function(self, atlas, image, quantity, on_hand, has_enough, name, owner, recipe_type, quant_text_scale, ingredient_recipe)
 	self:Kill()
 	ImageButton._ctor(self, resolvefilepath("images/hud.xml"), has_enough and "inv_slot.tex" or "resource_needed.tex")
 
@@ -18,7 +18,7 @@ AddClassPostConstruct("widgets/ingredientui", function(self, atlas, image, quant
 	local crafting_atlas = resolvefilepath("images/crafting_menu.xml")
 
 	self:SetFocusScale(1.1)
-	
+
 	local skin_name
 	if Profile:GetLastUsedSkinForItem(recipe_type) ~= nil then
 		skin_name = Profile:GetLastUsedSkinForItem(recipe_type)..".tex"
@@ -30,7 +30,7 @@ AddClassPostConstruct("widgets/ingredientui", function(self, atlas, image, quant
 	else
 		self:Disable()
 	end
-	
+
 	if quantity ~= nil then
 		self.quant = self.image:AddChild(Text(SMALLNUMBERFONT, JapaneseOnPS4() and 30 or 24))
 		self.quant:SetPosition(7, -32, 0)

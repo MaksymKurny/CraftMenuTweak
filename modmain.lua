@@ -1,32 +1,36 @@
- ImageButton = require "widgets/imagebutton"
- Widget = require "widgets/widget"
- Image = require "widgets/image"
- Grid = require "widgets/grid"
- Text = require "widgets/text"
- _G = GLOBAL
- resolvefilepath = _G.resolvefilepath
- softresolvefilepath = _G.softresolvefilepath
- TheInput = _G.TheInput
- STRINGS = _G.STRINGS
- Profile = _G.Profile
- GetTime = _G.GetTime
- TheNet = _G.TheNet
+ImageButton = require "widgets/imagebutton"
+Widget = require "widgets/widget"
+Image = require "widgets/image"
+Grid = require "widgets/grid"
+Text = require "widgets/text"
+_G = GLOBAL
+resolvefilepath = _G.resolvefilepath
+softresolvefilepath = _G.softresolvefilepath
+TheInput = _G.TheInput
+STRINGS = _G.STRINGS
+Profile = _G.Profile
+GetTime = _G.GetTime
+TheNet = _G.TheNet
 
- Assets = {
+Assets = {
 	Asset("IMAGE", "images/crafting_menu_avatars_o.tex"),
 	Asset("ATLAS", "images/crafting_menu_avatars_o.xml"),
- }
+}
 
- -- Functional key --
- F_KEYS = GetModConfigData("FUN_KEY")
- if type(F_KEYS) == "string" and _G:rawget(F_KEYS) then F_KEYS = _G[F_KEYS] end
+local AddClassPostConstruct = AddClassPostConstruct
+local GetModConfigData = GetModConfigData
+
+GLOBAL.setfenv(1, GLOBAL)
+
+-- Functional key --
+F_KEYS = GetModConfigData("FUN_KEY")
+if type(F_KEYS) == "string" and _G:rawget(F_KEYS) then F_KEYS = _G[F_KEYS] end
 
 --- Icons ---
 if GetModConfigData("ICON_PACK") == 1 then
 	table.insert(Assets, Asset("IMAGE", "images/old/crafting_menu_icons.tex"))
 	table.insert(Assets, Asset("ATLAS", "images/old/crafting_menu_icons.xml"))
 	_G.CRAFTING_ICONS_ATLAS = "images/old/crafting_menu_icons.xml"
-
 elseif GetModConfigData("ICON_PACK") == 2 then
 	table.insert(Assets, Asset("IMAGE", "images/blk/crafting_menu_icons.tex"))
 	table.insert(Assets, Asset("ATLAS", "images/blk/crafting_menu_icons.xml"))
@@ -56,7 +60,7 @@ if GetModConfigData("COMP_PINBAR") then
 	local PinSlot = require "widgets/redux/craftingmenu_pinslot"
 	AddClassPostConstruct("widgets/redux/craftingmenu_pinbar", function(self, owner, crafting_hud, height)
 		local buttonsize = 60 -- 64
-		local y = 241 -- 378 -76 -61
+		local y = 241       -- 378 -76 -61
 		self.pin_slots = {}
 		local pinned_recipes = _G.TheCraftingMenuProfile:GetPinnedRecipes()
 
@@ -86,7 +90,7 @@ if GetModConfigData("COMP_PINBAR") then
 			pin_slot.FindPinUp = FindPinUp
 			pin_slot.FindPinDown = FindPinDown
 			pin_slot.hide_cursor = true
-		    pin_slot.in_pinbar = true
+			pin_slot.in_pinbar = true
 			table.insert(self.pin_slots, pin_slot)
 
 			y = y - buttonsize - 3 -- 13

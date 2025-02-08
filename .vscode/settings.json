@@ -6,6 +6,11 @@
     "Asset",
     "GetModConfigData",
     "modimport",
-    "AddClassPostConstruct"
+    "AddClassPostConstruct",
+    "UIFONT",
+    "UICOLOURS"
+  ],
+  "Lua.diagnostics.disable": [
+    "undefined-global"
   ]
 }
