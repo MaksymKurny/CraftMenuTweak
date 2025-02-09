@@ -56,6 +56,10 @@ for i = 6, #CRAFTING_FILTER_DEFS - 1 do -- 6 = tools
 	end
 end
 
+STRINGS.UI.TABS.PIN = "Pin to"
+STRINGS.UI.TABS.UNPIN = "Unpin from"
+STRINGS.UI.OPEN_SCRAPBOOK = "Open scrapbook"
+
 --- Icons ---
 if GetModConfigData("ICON_PACK") == 1 then
 	table.insert(Assets, Asset("IMAGE", "images/old/crafting_menu_icons.tex"))
