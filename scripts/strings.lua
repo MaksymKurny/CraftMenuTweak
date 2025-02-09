@@ -20,3 +20,9 @@ GLOBAL.STRINGS.UI.CRAFTING_FILTERS =
 	SEAFARING = "Seafaring",
 	EVERYTHING = "Everything",
 }
+GLOBAL.STRINGS.UI.TABS =
+{
+	PIN = "Pin to",
+	UNPIN = "Unpin from"
+}
+GLOBAL.STRINGS.UI.OPEN_SCRAPBOOK = "Open scrapbook"

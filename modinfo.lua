@@ -1,6 +1,6 @@
 name = "Craft Menu Tweak"
 author = "Godless"
-version = "6.81"
+version = "6.9"
 description = [[
 Customize the crafting menu to your taste, open the mod settings and turn on the necessary functions.
 Налаштуйте меню крафту на свій смак, відкривай налаштування моду і вмикай необхідні функції.
@@ -29,6 +29,7 @@ local LOCALE =
 		SUB_INGR = "Ingredient list",
 		CRAFT_SKIN = "Skin instead of item",
 		TAB_SUPPORT = "Tabs support",
+		TAB_RECIPES = "Tabs recipes",
 		SCRAP_BOOK = "Scrap book button",
 		CRAFT_ING = "Сraft ingredients",
 		COMP_PINBAR = "Compact pinn bar",
@@ -51,6 +52,7 @@ local LOCALE =
 		CRAFT_SKIN_HOVER = "Changes the standard icon of the recipe to the skin, allowing you to understand which skin will be created by double-clicking",
 		FUN_KEY_HOVER = "Button to add a tab and sort favorite recipes.",
 		TAB_SUPPORT_HOVER = "light port of server mod \"Tabs\"",
+		TAB_RECIPES_HOVER = "Enables recipe support for tabs, tabs support must also be active",
 		SCRAP_BOOK_HOVER = "Adds a small button that, when clicked, will open a Scrapbook with information about that item.",
 		CRAFT_ING_HOVER = "Improved version of the original.",
 		COMP_PINBAR_HOVER = "Makes it more compact and makes 12 pinn slots.",
@@ -79,6 +81,7 @@ local LOCALE =
 		FAST_CRAFT = "Крафт 1 кликом",
 		FUN_KEY = "Функциональная кнопка",
 		TAB_SUPPORT = "Поддержка вкладок",
+		TAB_RECIPES = "Рецепты вкладок",
 		SCRAP_BOOK = "Кнопка открытия скрепбука",
 		CRAFT_ING = "Крафт ингридиентов",
 		COMP_PINBAR = "Компактная пин панель",
@@ -99,6 +102,7 @@ local LOCALE =
 		FAST_CRAFT_HOVER = "Позволяет создавать предметы, 1 кликом, выберите кнопку для активации режима.",
 		FUN_KEY_HOVER = "Кнопка для добавления вкладок и сортировки любимых рецептов.",
 		TAB_SUPPORT_HOVER = "Лёгкий порт серверного мода \"Tabs\"",
+		TAB_RECIPES_HOVER = "Добавляет поддержку рецептов для вкладок, поддержка владок должна быть включена",
 		SCRAP_BOOK_HOVER = "Добавляет кнопку по нажатию на которую откроется книга с доп. информацией.",
 		CRAFT_ING_HOVER = "Улучшенная версия оригинала.",
 		COMP_PINBAR_HOVER = "Сделает его компактным (12 слотов для пинов).",
@@ -128,6 +132,7 @@ local LOCALE =
 		SUB_INGR = "配方悬浮材料",
 		CRAFT_SKIN = "配方皮肤",
 		TAB_SUPPORT = "Tabs模组支持",
+		TAB_RECIPES = "标签食谱",
 		CRAFT_ING = "材料栏视觉改善",
 		COMP_PINBAR = "快捷制作栏更多栏",
 		FIX_PINBAR = "快捷制作栏固定位置",
@@ -149,6 +154,7 @@ local LOCALE =
 		CRAFT_SKIN_HOVER = "配方图标替换为其最近使用的皮肤图标",
 		FUN_KEY_HOVER = "制作栏内用此按键添加新选项卡，收藏夹内用此按键来调序；前者需要使用Tabs服务端模组和打开Tabs模组支持",
 		TAB_SUPPORT_HOVER = "\"Tabs\"服务端模组的轻量接口",
+		TAB_RECIPES_HOVER = "启用配方对选项卡的支持，选项卡支持也必须处于激活状态",
 		CRAFT_ING_HOVER = "改善制作栏下方材料栏的视觉效果",
 		COMP_PINBAR_HOVER = "最左侧的快捷制作栏从原来的9格变为12格",
 		FIX_PINBAR_HOVER = "最左侧的快捷制作栏在打开制作栏后还在最左侧，需要打开窄的三行制作栏",
@@ -213,6 +219,7 @@ configuration_options =
 	MakeOption("CRAFT_SKIN", true),
 	MakeOption("SCRAP_BOOK", true),
 	MakeOption("TAB_SUPPORT", true),
+	MakeOption("TAB_RECIPES", true),
 	MakeOption("CRAFT_ING", true),
 	MakeOption("CRAFT_COUNT"),
 	MakeOption("FAV_SHOW_ALL", true),

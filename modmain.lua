@@ -19,6 +19,7 @@ local modimport = modimport
 local AddClassPostConstruct = AddClassPostConstruct
 local GetModConfigData = GetModConfigData
 
+local TABS_LIST = {}
 
 -- Functional key --
 local FN_KEYS = GetModConfigData("FUN_KEY")
@@ -26,6 +27,34 @@ if type(FN_KEYS) == "string" and GLOBAL:rawget(FN_KEYS) then FN_KEYS = GLOBAL[FN
 
 GLOBAL.setfenv(1, GLOBAL)
 
+-- tabs ingredients create
+local max_recipe_count = 4
+local valid_levels = {
+	[TECH.NONE] = true,
+	[TECH.SCIENCE_ONE] = true,
+	[TECH.SCIENCE_TWO] = true,
+	[TECH.MAGIC_TWO] = true,
+	[TECH.MAGIC_THREE] = true,
+	[TECH.FISHING_ONE] = true
+}
+for i = 6, #CRAFTING_FILTER_DEFS - 1 do -- 6 = tools
+	local filter = CRAFTING_FILTER_DEFS[i]
+	TABS_LIST[filter.name] = TABS_LIST[filter.name] or {
+		ingredients = {}
+	}
+	for j = 1, #filter.recipes do
+		if #TABS_LIST[filter.name].ingredients >= max_recipe_count then
+			break
+		end
+
+		local recipe_name = filter.recipes[j]
+		local data_s = GetValidRecipe(recipe_name)
+
+		if data_s and valid_levels[data_s.level] and not data_s.builder_tag then
+			table.insert(TABS_LIST[filter.name].ingredients, Ingredient(recipe_name, 0))
+		end
+	end
+end
 
 --- Icons ---
 if GetModConfigData("ICON_PACK") == 1 then
@@ -49,32 +78,91 @@ AddClassPostConstruct("widgets/redux/craftingmenu_details",
 			_PopulateRecipeDetailPanel(self, data, skin_name)
 			if data == nil then
 				self.scrap_button = nil
+				self.pin_button = nil
 				self:KillAllChildren()
 				return
 			end
-			if not GetModConfigData("SCRAP_BOOK") then return end
+			if GetModConfigData("SCRAP_BOOK") then
+				local atlas = resolvefilepath("images/loading_screen_icons.xml")
 
-			local atlas = resolvefilepath("images/skilltree.xml")
+				-- Scrapbook Button
+				local is_viewed = data and TheScrapbookPartitions:WasViewedInScrapbook(data.recipe.name) or false
+				local scrap_button = self:AddChild(Widget("left_root")):AddChild(ImageButton(atlas, "icon_lore.tex",
+					"icon_lore.tex", nil, "icon_lore.tex", nil, { .35, .35 }, { 0, 0 }))
+				scrap_button:SetPosition(-self.panel_width / 2 + 2, self.build_button_root:GetLocalPosition().y - 2)
+				scrap_button.focus_scale = { .4, .4 }
+				scrap_button.normal_scale = { .35, .35 }
 
-			-- Scrapbook Button
-			local is_viewed = data and TheScrapbookPartitions:WasViewedInScrapbook(data.recipe.name) or false
-			local scrap_button = self:AddChild(Widget("left_root")):AddChild(ImageButton(atlas,
-				is_viewed and "unlocked_over.tex" or "question_over.tex",
-				is_viewed and "unlocked_over.tex" or "question_over.tex", nil,
-				is_viewed and "unlocked_over.tex" or "question_over.tex", nil, { .7, .7 }, { 0, 0 }))
-			scrap_button:SetPosition(-self.panel_width / 2 + 2, self.build_button_root:GetLocalPosition().y - 2)
-			scrap_button.focus_scale = { .8, .8 }
-			scrap_button.normal_scale = { .7, .7 }
-
-			if is_viewed then
-				scrap_button:Enable()
-			else
-				scrap_button:Disable()
+				if is_viewed then
+					scrap_button:Show()
+				else
+					scrap_button:Hide()
+				end
+				scrap_button:SetHoverText(STRINGS.UI.OPEN_SCRAPBOOK, {
+					font = NEWFONT_OUTLINE,
+					offset_x = 60,
+					offset_y = -45,
+					colour = UICOLOURS.WHITE
+				})
+				scrap_button:SetOnClick(function()
+					TheScrapbookPartitions:TryToTeachScrapbookData_Note(data.recipe.name)
+				end)
+				self.scrap_button = scrap_button
 			end
-			scrap_button:SetOnClick(function()
-				TheScrapbookPartitions:TryToTeachScrapbookData_Note(data.recipe.name)
-			end)
-			self.scrap_button = scrap_button
+
+
+			-- Recipe in tabs pin Button
+			if GetModConfigData("TAB_SUPPORT") and GetModConfigData("TAB_RECIPES") and self.from_filter_name ~= "FAVORITES" and self.from_filter_name ~= "CHARACTER" and self.from_filter_name ~= "CRAFTING_STATION" then
+				local function GetRepiceIndex(self)
+					if data and TABS_LIST[self.from_filter_name] and TABS_LIST[self.from_filter_name].ingredients then
+						for index, existing_recipe in ipairs(TABS_LIST[self.from_filter_name].ingredients) do
+							if existing_recipe.type == data.recipe.name then
+								return index
+							end
+						end
+					end
+					return nil
+				end
+				local atlas = resolvefilepath("images/global_redux.xml")
+				local pinned_idx = GetRepiceIndex(self)
+
+				local pin_button = self:AddChild(Widget("left_root")):AddChild(ImageButton(atlas,
+					pinned_idx and "radiobutton_filled_gold_on.tex" or "radiobutton_filled_gold_off.tex",
+					pinned_idx and "radiobutton_filled_gold_on.tex" or "radiobutton_filled_gold_off.tex", nil,
+					pinned_idx and "radiobutton_filled_gold_on.tex" or "radiobutton_filled_gold_off.tex", nil, { .45, .45 },
+					{ 0, 0 }))
+				pin_button:SetPosition(-self.panel_width / 2 + 40, self.build_button_root:GetLocalPosition().y - 2)
+				pin_button.focus_scale = { .5, .5 }
+				pin_button.normal_scale = { .45, .45 }
+
+				pin_button:SetHoverText((pinned_idx and STRINGS.UI.TABS.UNPIN or STRINGS.UI.TABS.PIN) .. " " ..
+					STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name], {
+						font = NEWFONT_OUTLINE,
+						offset_x = 45,
+						offset_y = -45,
+						colour = UICOLOURS.WHITE
+					})
+
+				pin_button:SetOnClick(function()
+					if pinned_idx then
+						TheCraftingMenuProfile:SetTabRecipes(self.from_filter_name, pinned_idx)
+						pinned_idx = nil
+
+						pin_button:SetTextures(atlas, "radiobutton_filled_gold_off.tex", "radiobutton_filled_gold_off.tex", nil,
+							"radiobutton_filled_gold_off.tex", nil,
+							{ .45, .45 }, { 0, 0 })
+					else
+						TheCraftingMenuProfile:SetTabRecipes(self.from_filter_name, nil, data.recipe.name)
+						pinned_idx = GetRepiceIndex(self)
+						pin_button:SetTextures(atlas, "radiobutton_filled_gold_on.tex", "radiobutton_filled_gold_on.tex", nil,
+							"radiobutton_filled_gold_on.tex", nil,
+							{ .45, .45 }, { 0, 0 })
+					end
+					pin_button:SetHoverText((pinned_idx and STRINGS.UI.TABS.UNPIN or STRINGS.UI.TABS.PIN) .. " " ..
+						STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name])
+				end)
+				self.pin_button = pin_button
+			end
 		end
 	end)
 
@@ -461,7 +549,11 @@ if GetModConfigData("CRAFT_ING") then
 					if builder ~= nil then
 						quantity = RoundBiasedUp(quantity * builder:IngredientMod())
 					end
-					self.quant:SetString(string.format("%d/%d", on_hand, quantity))
+					if on_hand > 999 then
+						self.quant:SetString(string.format("999+/%d", quantity))
+					else
+						self.quant:SetString(string.format("%d/%d", on_hand, quantity))
+					end
 				elseif recipe_type == CHARACTER_INGREDIENT.MAX_HEALTH
 						or recipe_type == CHARACTER_INGREDIENT.MAX_SANITY then
 					self.quant:SetString(string.format("-%2.0f%%", quantity * 100))
@@ -617,28 +709,34 @@ AddClassPostConstruct("widgets/redux/craftingmenu_pinbar", function(self, owner,
 end)
 
 -- Tabs client_only port --
-if GetModConfigData("TAB_SUPPORT") then
-	AddClassPostConstruct("widgets/redux/craftingmenu_pinslot", function(self, owner, craftingmenu, slot_num, pin_data)
-		if GetModConfigData("CRAFT_COUNT") then
-			self.item_img.numtogive = self.item_img:AddChild(Text(UIFONT, 35, "", UICOLOURS.GOLD_UNIMPORTANT))
-			self.item_img.numtogive:SetPosition(25, -25)
-			self.item_img.numtogive:Hide()
-		end
+AddClassPostConstruct("widgets/redux/craftingmenu_pinslot", function(self, owner, craftingmenu, slot_num, pin_data)
+	if GetModConfigData("CRAFT_COUNT") then
+		self.item_img.numtogive = self.item_img:AddChild(Text(UIFONT, 35, "", UICOLOURS.GOLD_UNIMPORTANT))
+		self.item_img.numtogive:SetPosition(25, -25)
+		self.item_img.numtogive:Hide()
+	end
+
+	if GetModConfigData("TAB_SUPPORT") then
+		self.filter_name = (self.recipe_name ~= nil and string.find(self.recipe_name, "filter_")) and
+				string.sub(self.recipe_name, 8) or nil
 
 		local _OnClick = self.craft_button.onclick
 		self.craft_button:SetOnClick(function()
-			if self.recipe_name ~= nil and string.find(self.recipe_name, "filter_") and not self.unpin_button.focus then
+			if self.filter_name ~= nil and not self.unpin_button.focus then
 				self.owner.HUD:OpenCrafting()
-				self.craftingmenu.craftingmenu:SelectFilter(string.sub(self.recipe_name, 8), true)
+				self.craftingmenu.craftingmenu:SelectFilter(self.filter_name, true)
 				local data = self.craftingmenu.craftingmenu.filtered_recipes[1]
 				self.craftingmenu.craftingmenu:PopulateRecipeDetailPanel(data,
 					data ~= nil and Profile:GetLastUsedSkinForItem(data.recipe.name) or nil)
 				self.craft_button:SetHelpTextMessage(STRINGS.ACTIONS.RUMMAGE.GENERIC)
 				return
+			elseif self.filter_name ~= nil and self.unpin_button.focus then
+				self.filter_name = nil
 			end
 
 			if self.craftingmenu:IsCraftingOpen() and not self.unpin_button.focus and self.recipe_name == nil and TheInput:IsKeyDown(FN_KEYS) then
 				local curr_filter = "filter_" .. self.craftingmenu.craftingmenu.current_filter_name
+				self.filter_name = self.craftingmenu.craftingmenu.current_filter_name
 				self:SetRecipe(curr_filter, nil)
 				return
 			end
@@ -659,6 +757,7 @@ if GetModConfigData("TAB_SUPPORT") then
 					return _OnControl(_self, control, down)
 				elseif control == CONTROL_MENU_MISC_1 then
 					local curr_filter = "filter_" .. self.craftingmenu.craftingmenu.current_filter_name
+					self.filter_name = self.craftingmenu.craftingmenu.current_filter_name
 					self:SetRecipe(curr_filter, nil)
 					return true
 				end
@@ -667,90 +766,183 @@ if GetModConfigData("TAB_SUPPORT") then
 
 		local _RefreshCraftingHelpText = self.RefreshCraftingHelpText
 		self.RefreshCraftingHelpText = function(self, controller_id)
-			if self.recipe_name ~= nil and string.find(self.recipe_name, "filter_") then
+			if self.filter_name ~= nil then
 				return TheInput:GetLocalizedControl(controller_id, CONTROL_ACCEPT) .. " " .. STRINGS.ACTIONS.RUMMAGE.GENERIC
 			end
 
 			return _RefreshCraftingHelpText(self, controller_id)
 		end
 
-		local _Refresh = self.Refresh
-		self.Refresh = function(self)
-			local data = self.craftingmenu:GetRecipeState(self.recipe_name)
-			local is_left = self.craftingmenu.is_left_aligned
-			local item_size = 80
-			local atlas = resolvefilepath(CRAFTING_ATLAS)
-			local craftmenu = self.craftingmenu.craftingmenu
+		if GetModConfigData("TAB_RECIPES") then
+			local function GetFilterData(filter_name)
+				for _, filter in ipairs(CRAFTING_FILTER_DEFS) do
+					if filter.name == filter_name then
+						return filter
+					end
+				end
+				return nil
+			end
 
-			------ Add this  -----------
-			if data == nil and self.recipe_name ~= nil and string.find(self.recipe_name, "filter_") and craftmenu.filter_buttons[string.sub(self.recipe_name, 8)] then
-				local button = craftmenu.filter_buttons[string.sub(self.recipe_name, 8)]
-				local can_prototype = false
-				local new_recipe_available = false
-				local inv_atlas = button.filter_img.atlas
-				local inv_image = button.filter_img.texture
-
-				self.item_img:SetTexture(inv_atlas, inv_image or "default.tex", "default.tex")
-				self.item_img:ScaleToSize(is_left and item_size or -item_size, item_size)
-				self.item_img:SetTint(1, 1, 1, 1)
-
-				if button ~= nil and button.filter_def.recipes ~= nil then
-					local has_buffered = false
-					local has_prototypeable = false
-					local num_can_build = 0
-					for _, recipe_name in pairs(FunctionOrValue(button.filter_def.recipes)) do
-						local data_recipes = craftmenu.crafting_hud.valid_recipes[recipe_name]
-						if data_recipes ~= nil then
-							if data_recipes.meta.can_build then
-								num_can_build = num_can_build + 1
-								if data_recipes.meta.build_state == "prototype" then
-									has_prototypeable = true
-									can_prototype = true
-								elseif data_recipes.meta.build_state == "buffered" then
-									has_buffered = true
-								end
+			self.CreateFilterRecipe = function(self)
+				local recipe = {
+					name = self.recipe_name,
+					ingredients = {},
+					tech_ingredients = {},
+					character_ingredients = {}
+				}
+				local filter_data = GetFilterData(self.filter_name)
+				if self.filter_name == "FAVORITES" then --update fav tab
+					local fav = TheCraftingMenuProfile:GetFavorites()
+					local j = 0
+					local count = GetModConfigData("Favorite count") or 6
+					for i = 1, count do
+						while j < #fav do -- if first 4 items have special tag
+							j = j + 1
+							local data_f = GetValidRecipe(fav[j])
+							if data_f ~= nil and data_f.builder_tag == nil then
+								table.insert(recipe.ingredients, Ingredient(fav[j], 0))
+								break
 							end
 						end
 					end
-
-					self.craft_button:SetTextures(atlas,
-						has_buffered and "pinslot_bg_buffered.tex" or num_can_build > 0 and "pinslot_bg_prototype.tex" or
-						"pinslot_bg_missing_mats.tex",
-						nil, nil, nil,
-						has_buffered and "pinslot_bg_buffered.tex" or num_can_build > 0 and "pinslot_bg_prototype.tex" or
-						"pinslot_bg_missing_mats.tex")
-
-					if has_prototypeable then
-						self.fg:SetTexture(atlas, "pinslot_fg_prototype.tex")
-						self.fg:Show()
-					else
-						self.fg:Hide()
+				elseif self.filter_name == "CHARACTER" then --update char tab
+					local j = 0
+					local count = GetModConfigData("Character count") or 6
+					for i = 1, count do
+						while j < #CRAFTING_FILTERS["CHARACTER"].recipes do -- if first items have special tag
+							j = j + 1
+							local data_c = GetValidRecipe(CRAFTING_FILTERS["CHARACTER"].recipes[j])
+							if data_c ~= nil and data_c.builder_tag ~= nil and owner ~= nil and owner:HasTag(data_c.builder_tag) then
+								table.insert(recipe.ingredients, Ingredient(CRAFTING_FILTERS["CHARACTER"].recipes[j], 0))
+								break
+							end
+						end
 					end
+				elseif self.filter_name == "CRAFTING_STATION" then --update station tab
+					local j = 0
+					for i = 1, 5 do
+						while j < #CRAFTING_FILTERS["CRAFTING_STATION"].recipes do -- if first 4 items have special tag
+							j = j + 1
+							local data_s = self.craftingmenu:GetRecipeState(CRAFTING_FILTERS["CRAFTING_STATION"].recipes[j])
+							if data_s ~= nil and data_s.meta.can_build then
+								table.insert(recipe.ingredients, Ingredient(CRAFTING_FILTERS["CRAFTING_STATION"].recipes[j], 0))
+								break
+							end
+						end
+					end
+				elseif TABS_LIST[self.filter_name] and TABS_LIST[self.filter_name].ingredients then
+					recipe.ingredients = TABS_LIST[self.filter_name].ingredients
 				end
-				self.craft_button:SetHelpTextMessage(STRINGS.ACTIONS.RUMMAGE.GENERIC)
-
-				self:Show()
-			else
-				_Refresh(self)
+				return recipe
 			end
 
-			if GetModConfigData("CRAFT_COUNT") then
-				if data ~= nil and data.recipe ~= nil and data.meta ~= nil then
-					if data.recipe.numtogive ~= nil and data.recipe.numtogive > 1 then
-						self.item_img.numtogive:SetString("x" .. data.recipe.numtogive)
-						self.item_img.numtogive:Show()
-					else
-						self.item_img.numtogive:SetString("")
-						self.item_img.numtogive:Hide()
+
+			local _ShowRecipe = self.ShowRecipe
+			self.ShowRecipe = function(self)
+				_ShowRecipe(self)
+
+				if self.filter_name ~= nil and self.recipe_popup ~= nil then
+					local filter_recipe = self:CreateFilterRecipe()
+					if filter_recipe ~= nil and #filter_recipe.ingredients > 0 then
+						self.recipe_popup.max_ingredients_wide = 8
+						self.recipe_popup:ShowPopup(filter_recipe)
 					end
+				end
+			end
+		end
+
+		self.UpdateFilterName = function(self)
+			self.filter_name = (self.recipe_name ~= nil and string.find(self.recipe_name, "filter_")) and
+					string.sub(self.recipe_name, 8) or nil
+		end
+	end
+
+	local _Refresh = self.Refresh
+	self.Refresh = function(self)
+		local data = self.craftingmenu:GetRecipeState(self.recipe_name)
+		local is_left = self.craftingmenu.is_left_aligned
+		local item_size = 80
+		local atlas = resolvefilepath(CRAFTING_ATLAS)
+		local craftmenu = self.craftingmenu.craftingmenu
+		if GetModConfigData("TAB_SUPPORT") then
+			self:UpdateFilterName()
+		end
+
+		------ Add this  -----------
+		if GetModConfigData("TAB_SUPPORT") and self.filter_name ~= nil and craftmenu.filter_buttons[self.filter_name] then
+			local button = craftmenu.filter_buttons[self.filter_name]
+			local can_prototype = false
+			local new_recipe_available = false
+			local inv_atlas = button.filter_img.atlas
+			local inv_image = button.filter_img.texture
+
+			if GetModConfigData("TAB_RECIPES") then
+				local filter_recipe = self:CreateFilterRecipe()
+				if self.recipe_popup:IsVisible() and #filter_recipe.ingredients > 0 then
+					self.recipe_popup:ShowPopup(filter_recipe)
+				end
+			end
+
+			self.item_img:SetTexture(inv_atlas, inv_image or "default.tex", "default.tex")
+			self.item_img:ScaleToSize(is_left and item_size or -item_size, item_size)
+			self.item_img:SetTint(1, 1, 1, 1)
+
+			if button ~= nil and button.filter_def.recipes ~= nil then
+				local has_buffered = false
+				local has_prototypeable = false
+				local num_can_build = 0
+				for _, recipe_name in pairs(FunctionOrValue(button.filter_def.recipes)) do
+					local data_recipes = craftmenu.crafting_hud.valid_recipes[recipe_name]
+					if data_recipes ~= nil then
+						if data_recipes.meta.can_build then
+							num_can_build = num_can_build + 1
+							if data_recipes.meta.build_state == "prototype" then
+								has_prototypeable = true
+								can_prototype = true
+							elseif data_recipes.meta.build_state == "buffered" then
+								has_buffered = true
+							end
+						end
+					end
+				end
+
+				self.craft_button:SetTextures(atlas,
+					has_buffered and "pinslot_bg_buffered.tex" or num_can_build > 0 and "pinslot_bg_prototype.tex" or
+					"pinslot_bg_missing_mats.tex",
+					nil, nil, nil,
+					has_buffered and "pinslot_bg_buffered.tex" or num_can_build > 0 and "pinslot_bg_prototype.tex" or
+					"pinslot_bg_missing_mats.tex")
+
+				if has_prototypeable then
+					self.fg:SetTexture(atlas, "pinslot_fg_prototype.tex")
+					self.fg:Show()
+				else
+					self.fg:Hide()
+				end
+			end
+			self.craft_button:SetHelpTextMessage(STRINGS.ACTIONS.RUMMAGE.GENERIC)
+
+			self:Show()
+		else
+			_Refresh(self)
+		end
+
+		if GetModConfigData("CRAFT_COUNT") then
+			if data ~= nil and data.recipe ~= nil and data.meta ~= nil then
+				if data.recipe.numtogive ~= nil and data.recipe.numtogive > 1 then
+					self.item_img.numtogive:SetString("x" .. data.recipe.numtogive)
+					self.item_img.numtogive:Show()
 				else
 					self.item_img.numtogive:SetString("")
 					self.item_img.numtogive:Hide()
 				end
+			else
+				self.item_img.numtogive:SetString("")
+				self.item_img.numtogive:Hide()
 			end
 		end
-	end)
-end
+	end
+end)
 
 -- Compact menu --
 if GetModConfigData("COMP_CM") then
@@ -1036,14 +1228,13 @@ if GetModConfigData("COMP_CM") then
 			self.pb_root = self:AddChild(Widget("craftingmenu_root"))
 			self.pinbar:KillAllChildren()
 			self.pinbar = self.pb_root:AddChild(CraftingMenuPinBar(owner, self, HEIGHT))
-			self.pinbar:SetPosition(0, 0)
+			self.pinbar:SetPosition(0, GetModConfigData("COMP_CM") and 40 or 0)
 			self.pb_root:MoveToBack()
 
 			self.is_left_aligned = false
 		end
 
 		if GetModConfigData("COMP_CM") then
-			self.pinbar:SetPosition(0, 40)
 			local y_offset = IsSplitScreen() and -50 or 0
 			self.openhint:SetPosition(is_left_aligned and 28 or -28, 34 + HEIGHT / 2 + y_offset + 40)
 		end
@@ -1052,11 +1243,18 @@ if GetModConfigData("COMP_CM") then
 		self.craftingmenu:DoFocusHookups()
 
 		self.is_left_aligned = is_left_aligned
+
+		if GetModConfigData("TAB_SUPPORT") then
+			self.GetRecipeState = function(self, recipe_name)
+				return (recipe_name ~= nil and string.find(recipe_name, "filter_")) and { meta = {} } or
+						self.valid_recipes[recipe_name]
+			end
+		end
 	end)
 end
 
-if GetModConfigData("CHR_PINBAR") then
-	AddClassPostConstruct("craftingmenuprofile", function(self)
+AddClassPostConstruct("craftingmenuprofile", function(self)
+	if GetModConfigData("CHR_PINBAR") then
 		local function findIndex(tbl, value)
 			for index, v in ipairs(tbl) do
 				if v == value then
@@ -1085,5 +1283,60 @@ if GetModConfigData("CHR_PINBAR") then
 				self:SetCurrentPage(prev_page >= 1 and prev_page or Profile:GetCraftingNumPinnedPages())
 			end
 		end
-	end)
-end
+	end
+
+	if GetModConfigData("TAB_SUPPORT") and GetModConfigData("TAB_RECIPES") then
+		self.SetTabRecipes = function(self, tab_name, index, recipe_name)
+			if tab_name and index then
+				table.remove(TABS_LIST[tab_name].ingredients, index)
+				self.dirty = true
+			elseif tab_name and recipe_name then
+				table.insert(TABS_LIST[tab_name].ingredients, Ingredient(recipe_name, 0))
+				self.dirty = true
+			end
+		end
+
+		local _Save = self.Save
+		self.Save = function(self, force_save)
+			if force_save or (self.save_enabled and self.dirty) then
+				local data = { tabs_items = {} }
+				for tab_name, tab_data in pairs(TABS_LIST) do
+					data.tabs_items[tab_name] = {}
+					for _, ingredient in ipairs(tab_data.ingredients) do
+						table.insert(data.tabs_items[tab_name], ingredient.type)
+					end
+				end
+
+				TheSim:SetPersistentString("cmt_tabs", json.encode(data), false)
+			end
+
+			_Save(self, force_save)
+		end
+
+		local _Load = self.Load
+		self.Load = function(self)
+			TheSim:GetPersistentString("cmt_tabs", function(load_success, data)
+				if load_success and data ~= nil then
+					local status, data = pcall(function() return json.decode(data) end)
+					if status and data then
+						for tab_name, recipes in pairs(data.tabs_items) do
+							TABS_LIST[tab_name] = {
+								ingredients = {}
+							}
+							for _, recipe in ipairs(recipes) do
+								local data_t = GetValidRecipe(recipe)
+								if data_t then
+									table.insert(TABS_LIST[tab_name].ingredients, Ingredient(recipe, 0))
+								end
+							end
+						end
+					else
+						print("Faild to load the crafting tabs!", status, data)
+					end
+				end
+			end)
+
+			_Load(self)
+		end
+	end
+end)
