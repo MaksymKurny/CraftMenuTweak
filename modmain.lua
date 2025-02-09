@@ -27,6 +27,10 @@ if type(FN_KEYS) == "string" and GLOBAL:rawget(FN_KEYS) then FN_KEYS = GLOBAL[FN
 
 GLOBAL.setfenv(1, GLOBAL)
 
+STRINGS.UI.TABS_PIN = "Pin to"
+STRINGS.UI.TABS_UNPIN = "Unpin from"
+STRINGS.UI.OPEN_SCRAPBOOK = "Open scrapbook"
+
 -- tabs ingredients create
 local max_recipe_count = 4
 local valid_levels = {
@@ -159,7 +163,7 @@ AddClassPostConstruct("widgets/redux/craftingmenu_details",
 							{ .45, .45 }, { 0, 0 })
 					end
 					pin_button:SetHoverText((pinned_idx and STRINGS.UI.TABS_UNPIN or STRINGS.UI.TABS_PIN) .. " " ..
-					(STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name] or "Tab"))
+						(STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name] or "Tab"))
 				end)
 				self.pin_button = pin_button
 			end
