@@ -1038,6 +1038,8 @@ if GetModConfigData("COMP_CM") then
 			self.pinbar = self.pb_root:AddChild(CraftingMenuPinBar(owner, self, HEIGHT))
 			self.pinbar:SetPosition(0, 0)
 			self.pb_root:MoveToBack()
+
+			self.is_left_aligned = false
 		end
 
 		if GetModConfigData("COMP_CM") then
@@ -1048,6 +1050,8 @@ if GetModConfigData("COMP_CM") then
 
 		self:RefreshControllers(TheInput:ControllerAttached())
 		self.craftingmenu:DoFocusHookups()
+
+		self.is_left_aligned = is_left_aligned
 	end)
 end
 
