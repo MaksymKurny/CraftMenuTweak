@@ -56,10 +56,6 @@ for i = 6, #CRAFTING_FILTER_DEFS - 1 do -- 6 = tools
 	end
 end
 
-STRINGS.UI.TABS.PIN = "Pin to"
-STRINGS.UI.TABS.UNPIN = "Unpin from"
-STRINGS.UI.OPEN_SCRAPBOOK = "Open scrapbook"
-
 --- Icons ---
 if GetModConfigData("ICON_PACK") == 1 then
 	table.insert(Assets, Asset("IMAGE", "images/old/crafting_menu_icons.tex"))
@@ -139,8 +135,8 @@ AddClassPostConstruct("widgets/redux/craftingmenu_details",
 				pin_button.focus_scale = { .5, .5 }
 				pin_button.normal_scale = { .45, .45 }
 
-				pin_button:SetHoverText((pinned_idx and STRINGS.UI.TABS.UNPIN or STRINGS.UI.TABS.PIN) .. " " ..
-					STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name], {
+				pin_button:SetHoverText((pinned_idx and STRINGS.UI.TABS_UNPIN or STRINGS.UI.TABS_PIN) .. " " ..
+					(STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name] or "Tab"), {
 						font = NEWFONT_OUTLINE,
 						offset_x = 45,
 						offset_y = -45,
@@ -162,8 +158,8 @@ AddClassPostConstruct("widgets/redux/craftingmenu_details",
 							"radiobutton_filled_gold_on.tex", nil,
 							{ .45, .45 }, { 0, 0 })
 					end
-					pin_button:SetHoverText((pinned_idx and STRINGS.UI.TABS.UNPIN or STRINGS.UI.TABS.PIN) .. " " ..
-						STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name])
+					pin_button:SetHoverText((pinned_idx and STRINGS.UI.TABS_UNPIN or STRINGS.UI.TABS_PIN) .. " " ..
+					(STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name] or "Tab"))
 				end)
 				self.pin_button = pin_button
 			end
