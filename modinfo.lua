@@ -1,6 +1,6 @@
 name = "Craft Menu Tweak"
 author = "Godless"
-version = "6.95"
+version = "6.98"
 description = [[
 Customize the crafting menu to your taste, open the mod settings and turn on the necessary functions.
 Налаштуйте меню крафту на свій смак, відкривай налаштування моду і вмикай необхідні функції.
@@ -219,7 +219,7 @@ configuration_options =
 	MakeOption("CRAFT_SKIN", true),
 	MakeOption("SCRAP_BOOK", true),
 	MakeOption("TAB_SUPPORT", true),
-	MakeOption("TAB_RECIPES", true),
+	MakeOption("TAB_RECIPES"),
 	MakeOption("CRAFT_ING", true),
 	MakeOption("CRAFT_COUNT"),
 	MakeOption("FAV_SHOW_ALL", true),

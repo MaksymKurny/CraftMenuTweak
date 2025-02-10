@@ -31,31 +31,35 @@ STRINGS.UI.TABS_PIN = "Pin to"
 STRINGS.UI.TABS_UNPIN = "Unpin from"
 STRINGS.UI.OPEN_SCRAPBOOK = "Open scrapbook"
 
--- tabs ingredients create
-local max_recipe_count = 4
-local valid_levels = {
-	[TECH.NONE] = true,
-	[TECH.SCIENCE_ONE] = true,
-	[TECH.SCIENCE_TWO] = true,
-	[TECH.MAGIC_TWO] = true,
-	[TECH.MAGIC_THREE] = true,
-	[TECH.FISHING_ONE] = true
-}
-for i = 6, #CRAFTING_FILTER_DEFS - 1 do -- 6 = tools
-	local filter = CRAFTING_FILTER_DEFS[i]
-	TABS_LIST[filter.name] = TABS_LIST[filter.name] or {
-		ingredients = {}
+if GetModConfigData("TAB_RECIPES") then
+	-- tabs ingredients create
+	local max_recipe_count = 4
+	local valid_levels = {
+		[TECH.NONE] = true,
+		[TECH.SCIENCE_ONE] = true,
+		[TECH.SCIENCE_TWO] = true,
+		[TECH.MAGIC_TWO] = true,
+		[TECH.MAGIC_THREE] = true,
+		[TECH.FISHING_ONE] = true
 	}
-	for j = 1, #filter.recipes do
-		if #TABS_LIST[filter.name].ingredients >= max_recipe_count then
-			break
-		end
+	for i = 6, #CRAFTING_FILTER_DEFS - 1 do -- 6 = tools
+		local filter = CRAFTING_FILTER_DEFS[i]
+		TABS_LIST[filter.name] = TABS_LIST[filter.name] or {
+			ingredients = {}
+		}
+		if filter.recipes then
+			for j = 1, #filter.recipes do
+				if #TABS_LIST[filter.name].ingredients >= max_recipe_count then
+					break
+				end
 
-		local recipe_name = filter.recipes[j]
-		local data_s = GetValidRecipe(recipe_name)
+				local recipe_name = filter.recipes[j]
+				local data_s = GetValidRecipe(recipe_name)
 
-		if data_s and valid_levels[data_s.level] and not data_s.builder_tag then
-			table.insert(TABS_LIST[filter.name].ingredients, Ingredient(recipe_name, 0))
+				if data_s and valid_levels[data_s.level] and not data_s.builder_tag then
+					table.insert(TABS_LIST[filter.name].ingredients, Ingredient(recipe_name, 0))
+				end
+			end
 		end
 	end
 end
@@ -140,7 +144,8 @@ AddClassPostConstruct("widgets/redux/craftingmenu_details",
 				pin_button.normal_scale = { .45, .45 }
 
 				pin_button:SetHoverText((pinned_idx and STRINGS.UI.TABS_UNPIN or STRINGS.UI.TABS_PIN) .. " " ..
-					(STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name] or "Tab"), {
+					(STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name] and STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name] or "Tab"),
+					{
 						font = NEWFONT_OUTLINE,
 						offset_x = 45,
 						offset_y = -45,
@@ -163,7 +168,7 @@ AddClassPostConstruct("widgets/redux/craftingmenu_details",
 							{ .45, .45 }, { 0, 0 })
 					end
 					pin_button:SetHoverText((pinned_idx and STRINGS.UI.TABS_UNPIN or STRINGS.UI.TABS_PIN) .. " " ..
-						(STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name] or "Tab"))
+						(STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name] and STRINGS.UI.CRAFTING_FILTERS[self.from_filter_name] or "Tab"))
 				end)
 				self.pin_button = pin_button
 			end
@@ -1291,10 +1296,13 @@ AddClassPostConstruct("craftingmenuprofile", function(self)
 
 	if GetModConfigData("TAB_SUPPORT") and GetModConfigData("TAB_RECIPES") then
 		self.SetTabRecipes = function(self, tab_name, index, recipe_name)
-			if tab_name and index then
+			if tab_name and TABS_LIST[tab_name] and index then
 				table.remove(TABS_LIST[tab_name].ingredients, index)
 				self.dirty = true
 			elseif tab_name and recipe_name then
+				TABS_LIST[tab_name] = TABS_LIST[tab_name] or {
+					ingredients = {}
+				}
 				table.insert(TABS_LIST[tab_name].ingredients, Ingredient(recipe_name, 0))
 				self.dirty = true
 			end
