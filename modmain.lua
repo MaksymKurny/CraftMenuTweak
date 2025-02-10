@@ -620,21 +620,25 @@ if GetModConfigData("CRAFT_ING") then
 					end
 				end
 				self.ongainfocus = function()
-					self.sub_ingredients = self.parent:AddChild(Widget("sub_ingredients"))
-					self.sub_ingredients:MoveToBack()
-					self.background = self.sub_ingredients:AddChild(ThreeSlice(crafting_atlas, "popup_end.tex", "popup_short.tex"))
+					local num_items = self.ingredients and tonumber(self.ingredients.num_items) or 0
+					if num_items > 0 then
+						self.sub_ingredients = self.parent:AddChild(Widget("sub_ingredients"))
+						self.sub_ingredients:MoveToBack()
+						self.background = self.sub_ingredients:AddChild(ThreeSlice(crafting_atlas, "popup_end.tex", "popup_short.tex"))
 
-					self.ingredients = self.sub_ingredients:AddChild(CraftingMenuIngredients(self.owner, 4,
-						ingredient_recipe.recipe, 1.5))
+						self.ingredients = self.sub_ingredients:AddChild(CraftingMenuIngredients(self.owner, 4,
+							ingredient_recipe.recipe, 1.5))
 
-					self._scale = 1.0
+						self._scale = 1.0
 
-					self.background:ManualFlow(math.min(5, self.ingredients.num_items), true)
 
-					local x = self.background.startcap:GetPositionXYZ()
+						self.background:ManualFlow(math.min(5, num_items), true)
 
-					self.sub_ingredients:SetPosition(0, -75)
-					self.sub_ingredients:SetScale(self._scale)
+						local x = self.background.startcap:GetPositionXYZ()
+
+						self.sub_ingredients:SetPosition(0, -75)
+						self.sub_ingredients:SetScale(self._scale)
+					end
 				end
 
 				self.onlosefocus = function()
