@@ -32,35 +32,12 @@ STRINGS.UI.TABS_UNPIN = "Unpin from"
 STRINGS.UI.OPEN_SCRAPBOOK = "Open scrapbook"
 
 if GetModConfigData("TAB_RECIPES") then
-	-- tabs ingredients create
-	local max_recipe_count = 4
-	local valid_levels = {
-		[TECH.NONE] = true,
-		[TECH.SCIENCE_ONE] = true,
-		[TECH.SCIENCE_TWO] = true,
-		[TECH.MAGIC_TWO] = true,
-		[TECH.MAGIC_THREE] = true,
-		[TECH.FISHING_ONE] = true
-	}
+	-- empty tabs ingredients create
 	for i = 6, #CRAFTING_FILTER_DEFS - 1 do -- 6 = tools
 		local filter = CRAFTING_FILTER_DEFS[i]
 		TABS_LIST[filter.name] = TABS_LIST[filter.name] or {
 			ingredients = {}
 		}
-		if filter.recipes then
-			for j = 1, #filter.recipes do
-				if #TABS_LIST[filter.name].ingredients >= max_recipe_count then
-					break
-				end
-
-				local recipe_name = filter.recipes[j]
-				local data_s = GetValidRecipe(recipe_name)
-
-				if data_s and valid_levels[data_s.level] and not data_s.builder_tag then
-					table.insert(TABS_LIST[filter.name].ingredients, Ingredient(recipe_name, 0))
-				end
-			end
-		end
 	end
 end
 
@@ -440,7 +417,8 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 				----------------------------
 				local image = skin_name or (recipe.imagefn ~= nil and recipe.imagefn() or recipe.image)
 
-				widget.item_img:SetTexture(recipe:GetAtlas(), image, image ~= recipe.image and recipe.image or nil)
+				widget.item_img:SetTexture(GetInventoryItemAtlas(image, true) or recipe:GetAtlas(), image,
+					image ~= recipe.image and recipe.image or nil)
 				widget.item_img:ScaleToSize(item_size, item_size)
 
 				widget.item_img:SetTint(1, 1, 1, 1)
@@ -535,11 +513,18 @@ if GetModConfigData("CRAFT_ING") then
 
 			self:SetFocusScale(1.1)
 
-			local skin_name
-			if Profile:GetLastUsedSkinForItem(recipe_type) ~= nil then
-				skin_name = Profile:GetLastUsedSkinForItem(recipe_type) .. ".tex"
+			self.skin_name = Profile:GetLastUsedSkinForItem(recipe_type)
+			self.def_image = image
+			self.def_atlas = atlas
+
+			local inv_image
+			if self.skin_name ~= nil then
+				inv_image = self.skin_name .. ".tex"
+			else
+				inv_image = image
 			end
-			self.ing = self.image:AddChild(Image(atlas, skin_name or image))
+
+			self.ing = self.image:AddChild(Image(GetInventoryItemAtlas(inv_image, true) or atlas, inv_image))
 
 			if recipe_type ~= nil and AllRecipes[recipe_type] then
 				self:Enable()
@@ -615,30 +600,29 @@ if GetModConfigData("CRAFT_ING") then
 
 					self.onclick = function()
 						if self.ingredient_recipe ~= nil and meta.can_build then
-							DoRecipeClick(self.owner, self.ingredient_recipe.recipe, Profile:GetLastUsedSkinForItem(self.recipe_type))
+							DoRecipeClick(self.owner, self.ingredient_recipe.recipe, self.skin_name)
 						end
 					end
 				end
+
 				self.ongainfocus = function()
+					self.sub_ingredients = self.parent:AddChild(Widget("sub_ingredients"))
+					self.sub_ingredients:MoveToBack()
+					self.background = self.sub_ingredients:AddChild(ThreeSlice(crafting_atlas, "popup_end.tex", "popup_short.tex"))
+
+					self.ingredients = self.sub_ingredients:AddChild(CraftingMenuIngredients(self.owner, 4,
+						ingredient_recipe.recipe, 1.5))
+
+					self._scale = 1.0
+
+
 					local num_items = self.ingredients and tonumber(self.ingredients.num_items) or 0
-					if num_items > 0 then
-						self.sub_ingredients = self.parent:AddChild(Widget("sub_ingredients"))
-						self.sub_ingredients:MoveToBack()
-						self.background = self.sub_ingredients:AddChild(ThreeSlice(crafting_atlas, "popup_end.tex", "popup_short.tex"))
+					self.background:ManualFlow(math.min(5, num_items), true)
 
-						self.ingredients = self.sub_ingredients:AddChild(CraftingMenuIngredients(self.owner, 4,
-							ingredient_recipe.recipe, 1.5))
+					local x = self.background.startcap:GetPositionXYZ()
 
-						self._scale = 1.0
-
-
-						self.background:ManualFlow(math.min(5, num_items), true)
-
-						local x = self.background.startcap:GetPositionXYZ()
-
-						self.sub_ingredients:SetPosition(0, -75)
-						self.sub_ingredients:SetScale(self._scale)
-					end
+					self.sub_ingredients:SetPosition(0, -75)
+					self.sub_ingredients:SetScale(self._scale)
 				end
 
 				self.onlosefocus = function()
@@ -649,11 +633,52 @@ if GetModConfigData("CRAFT_ING") then
 				end
 			end
 
+			self.OnControl = function(_self, control, down)
+				if ImageButton.OnControl(_self, control, down) then return true end
+				if self.focus and down and not _self.down then
+					if not TheInput:ControllerAttached() and self.ingredient_recipe ~= nil then
+						if control == CONTROL_SCROLLBACK then
+							local new_skin = self:GetPrevSkin(self.skin_name)
+							if new_skin ~= self.skin_name then
+								self:SetSkin(new_skin)
+								TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_move")
+							else
+								TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_negative", nil, .1)
+							end
+							return true
+						elseif control == CONTROL_SCROLLFWD then
+							local new_skin = self:GetNextSkin(self.skin_name)
+							if new_skin ~= self.skin_name then
+								self:SetSkin(new_skin)
+								TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_move")
+							else
+								TheFrontEnd:GetSound():PlaySound("dontstarve/HUD/click_negative", nil, .1)
+							end
+							return true
+						end
+					end
+				end
+			end
+
 			if not self.ingredient_recipe then
 				self:Select() -- a disable that blocks focus highlighting
 			end
 
 			self:SetTooltip(tooltip)
+
+			function self:GetPrevSkin(cur_skin)
+				return GetPrevOwnedSkin(self.recipe_type, cur_skin)
+			end
+
+			function self:GetNextSkin(cur_skin)
+				return GetNextOwnedSkin(self.recipe_type, cur_skin)
+			end
+
+			function self:SetSkin(new_skin)
+				self.skin_name = new_skin
+				local inv_image = self.skin_name and self.skin_name .. ".tex" or self.def_image
+				self.ing:SetTexture(GetInventoryItemAtlas(inv_image, true) or self.def_atlas, inv_image)
+			end
 		end)
 end
 
