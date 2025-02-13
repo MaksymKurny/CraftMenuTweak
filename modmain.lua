@@ -278,7 +278,8 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 						w.cell_root.ingredients = w.cell_root.sub_ingredients:AddChild(CraftingMenuIngredients(self.owner, 4,
 							w.data.recipe, 1.5))
 					end
-					w.cell_root.background:ManualFlow(math.min(5, w.cell_root.ingredients.num_items), true)
+					local num_items = w.cell_root.ingredients and tonumber(w.cell_root.ingredients.num_items) or 0
+					w.cell_root.background:ManualFlow(math.min(5, num_items), true)
 
 					local x = w.cell_root.background.startcap:GetPositionXYZ()
 					w.cell_root.sub_ingredients:SetPosition(0, -105)
