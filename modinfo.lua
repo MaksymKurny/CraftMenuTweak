@@ -1,6 +1,6 @@
 name = "Craft Menu Tweak"
 author = "Godless"
-version = "6.71"
+version = "6.72"
 description = [[
 Customize the crafting menu to your taste, open the mod settings and turn on the necessary functions.
 Налаштуйте меню крафту на свій смак, відкривай налаштування моду і вмикай необхідні функції.
@@ -16,7 +16,6 @@ icon = "modicon.tex"
 
 local LOCALE =
 {
-	EN =
 	{
 		NAME = name,
 		DISABLED = "No",
@@ -69,8 +68,15 @@ local LOCALE =
 		ICON_ORG_HOVER = "Leave unchanged.",
 		C_ICON_OLD_HOVER = "Icon of the character's tab, if there was one.",
 		C_ICON_BLACK_HOVER = "Black version of the character's head.",
+
+		FAST_CRAFT_1 = "Always",
+		FAST_CRAFT_2 = "Right Button",
+		FAST_CRAFT_3 = "Ctrl",
+		FAST_CRAFT_1_HOVER = "Hold right button to deactivate mode",
+		FAST_CRAFT_2_HOVER = "Hold right button and click",
+		FAST_CRAFT_3_HOVER = "Hold Ctrl and click"
 	},
-	RU =
+	ru =
 	{
 		NAME = name,
 		DISABLED = "Нет",
@@ -119,8 +125,15 @@ local LOCALE =
 		ICON_ORG_HOVER = "Оставить без изменений.",
 		C_ICON_OLD_HOVER = "Иконка вкладки персонажа, если она есть.",
 		C_ICON_BLACK_HOVER = "Черная версия головы персонажа.",
+
+		FAST_CRAFT_1 = "Всегда",
+		FAST_CRAFT_2 = "Правая кнопка",
+		FAST_CRAFT_3 = "Ctrl",
+		FAST_CRAFT_1_HOVER = "Удерживайте ПКМ, чтобы отключить режим",
+		FAST_CRAFT_2_HOVER = "Удерживайте ПКМ, чтобы включить режим",
+		FAST_CRAFT_3_HOVER = "Удерживайте Ctrl, чтобы включить режим"
 	},
-	CH =
+	zh =
 	{
 		DISABLED = "禁用",
 		ENABLED = "启用",
@@ -133,6 +146,7 @@ local LOCALE =
 		CRAFT_SKIN = "配方皮肤",
 		TAB_SUPPORT = "Tabs模组支持",
 		TAB_RECIPES = "标签食谱",
+		SCRAP_BOOK = "废旧图书按钮",
 		CRAFT_ING = "材料栏视觉改善",
 		COMP_PINBAR = "快捷制作栏更多栏",
 		FIX_PINBAR = "快捷制作栏固定位置",
@@ -155,6 +169,7 @@ local LOCALE =
 		FUN_KEY_HOVER = "制作栏内用此按键添加新选项卡，收藏夹内用此按键来调序；前者需要使用Tabs服务端模组和打开Tabs模组支持",
 		TAB_SUPPORT_HOVER = "\"Tabs\"服务端模组的轻量接口",
 		TAB_RECIPES_HOVER = "启用配方对选项卡的支持，选项卡支持也必须处于激活状态",
+		SCRAP_BOOK_HOVER = "添加一个小按钮，点击后将打开一个包含该项目信息的剪贴簿。",
 		CRAFT_ING_HOVER = "改善制作栏下方材料栏的视觉效果",
 		COMP_PINBAR_HOVER = "最左侧的快捷制作栏从原来的9格变为12格",
 		FIX_PINBAR_HOVER = "最左侧的快捷制作栏在打开制作栏后还在最左侧，需要打开窄的三行制作栏",
@@ -170,10 +185,17 @@ local LOCALE =
 		ICON_ORG_HOVER = "未做任何改变",
 		C_ICON_OLD_HOVER = "传统风格",
 		C_ICON_BLACK_HOVER = "黑色风格",
+
+		FAST_CRAFT_1 = "始终",
+		FAST_CRAFT_2 = "右键",
+		FAST_CRAFT_3 = "Ctrl",
+		FAST_CRAFT_1_HOVER = "按住右键停用模式",
+		FAST_CRAFT_2_HOVER = "按住右键激活模式",
+		FAST_CRAFT_3_HOVER = "按住 Ctrl 键激活模式"
 	},
 }
--- СМЕНА ЯЗЫКА НА РУС/ 将语言更改为中文 --
-local STRINGS = LOCALE.EN --LOCALE.RU --LOCALE.CH
+
+local STRINGS = ChooseTranslationTable(LOCALE)
 
 local string = ""
 local keyslist = {}
@@ -210,9 +232,9 @@ configuration_options =
 		{ description = "100", data = 100 },
 	}),
 	MakeOption("FAST_CRAFT", 1, {
-		{ description = "Always",       hover = "Hold right button to deactivate mode", data = 0 },
-		{ description = "Right Button", hover = "Hold right button and click",          data = 1 },
-		{ description = "Ctrl",         hover = "Hold Ctrl and click",                  data = 2 },
+		{ description = STRINGS.FAST_CRAFT_1, hover = STRINGS.FAST_CRAFT_1_HOVER, data = 0 },
+		{ description = STRINGS.FAST_CRAFT_2, hover = STRINGS.FAST_CRAFT_2_HOVER, data = 1 },
+		{ description = STRINGS.FAST_CRAFT_3, hover = STRINGS.FAST_CRAFT_3_HOVER, data = 2 },
 	}),
 	MakeOption("FUN_KEY", "KEY_X", keyslist),
 	MakeOption("SUB_INGR"),

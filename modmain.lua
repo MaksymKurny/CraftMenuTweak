@@ -984,19 +984,31 @@ AddClassPostConstruct("widgets/redux/craftingmenu_pinslot", function(self, owner
 end)
 
 -- Compact menu --
-if GetModConfigData("COMP_CM") then
-	local CraftingMenuDetails = require "widgets/redux/craftingmenu_details"
-	local CraftingMenuWidget = require "widgets/redux/craftingmenu_widget"
-	local CraftingMenuPinBar = require "widgets/redux/craftingmenu_pinbar"
+local CraftingMenuDetails = require "widgets/redux/craftingmenu_details"
+local CraftingMenuWidget = require "widgets/redux/craftingmenu_widget"
+local CraftingMenuPinBar = require "widgets/redux/craftingmenu_pinbar"
 
-	local HEIGHT = 650
-	local SCALE = 0.75
-	local SEARCH_BOX_HEIGHT = 40
+local HEIGHT = GetModConfigData("COMP_CM") and 650 or 600
+local SCALE = GetModConfigData("COMP_CM") and 0.75 or 0.85
+local SEARCH_BOX_HEIGHT = 40
 
-	AddClassPostConstruct("widgets/redux/craftingmenu_skinselector", function(self, recipe, owner, skin_name)
-		self:SetScale(SCALE)
-	end)
-	AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner, crafting_hud, height)
+AddClassPostConstruct("widgets/redux/craftingmenu_skinselector", function(self, recipe, owner, skin_name)
+	self:SetScale(SCALE)
+end)
+AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner, crafting_hud, height)
+	local _RefreshCraftingHelpText = self.RefreshCraftingHelpText
+	self.RefreshCraftingHelpText = function(self, controller_id)
+		if self.filter_panel.focus then
+			return TheInput:GetLocalizedControl(controller_id, CONTROL_ACCEPT) ..
+					" " ..
+					STRINGS.UI.HUD.SELECT ..
+					" " ..
+					TheInput:GetLocalizedControl(controller_id, CONTROL_MENU_MISC_1) .. " " .. STRINGS.UI.CRAFTING_MENU.PIN
+		end
+		return _RefreshCraftingHelpText(self, controller_id)
+	end
+
+	if GetModConfigData("COMP_CM") then
 		self.UpdateEventButtonLayout = function(self)
 			local is_event_layout = self.event_layout
 			self.event_layout = self.special_event_filter.num_can_build ~= nil and self.special_event_filter.num_can_build > 0 or
@@ -1025,18 +1037,6 @@ if GetModConfigData("COMP_CM") then
 					self.search_box.textbox_root.textbox:SetRegionSize(self.grid_button_space * 4 - 30, SEARCH_BOX_HEIGHT)
 				end
 			end
-		end
-
-		local _RefreshCraftingHelpText = self.RefreshCraftingHelpText
-		self.RefreshCraftingHelpText = function(self, controller_id)
-			if self.filter_panel.focus then
-				return TheInput:GetLocalizedControl(controller_id, CONTROL_ACCEPT) ..
-						" " ..
-						STRINGS.UI.HUD.SELECT ..
-						" " ..
-						TheInput:GetLocalizedControl(controller_id, CONTROL_MENU_MISC_1) .. " " .. STRINGS.UI.CRAFTING_MENU.PIN
-			end
-			return _RefreshCraftingHelpText(self, controller_id)
 		end
 
 		self.MakeFrame = function(self, width, height)
@@ -1243,9 +1243,11 @@ if GetModConfigData("COMP_CM") then
 		self.frame = self.root:AddChild(self:MakeFrame(350, height))
 
 		self.focus_forward = self.filter_panel.filter_grid
-	end)
+	end
+end)
 
-	AddClassPostConstruct("widgets/redux/craftingmenu_hud", function(self, owner, is_left_aligned)
+AddClassPostConstruct("widgets/redux/craftingmenu_hud", function(self, owner, is_left_aligned)
+	if GetModConfigData("COMP_CM") then
 		if GetModConfigData("FIX_PINBAR") then
 			self.closed_pos = Vector3(0, 0, 0)
 			self.opened_pos = Vector3(450, 0, 0)
@@ -1267,30 +1269,29 @@ if GetModConfigData("COMP_CM") then
 			self.pb_root = self:AddChild(Widget("craftingmenu_root"))
 			self.pinbar:KillAllChildren()
 			self.pinbar = self.pb_root:AddChild(CraftingMenuPinBar(owner, self, HEIGHT))
-			self.pinbar:SetPosition(0, GetModConfigData("COMP_CM") and 40 or 0)
+			self.pinbar:SetPosition(0, GetModConfigData("COMP_PINBAR") and 40 or 0)
 			self.pb_root:MoveToBack()
 
 			self.is_left_aligned = false
 		end
 
-		if GetModConfigData("COMP_CM") then
-			local y_offset = IsSplitScreen() and -50 or 0
-			self.openhint:SetPosition(is_left_aligned and 28 or -28, 34 + HEIGHT / 2 + y_offset + 40)
-		end
+		local y_offset = IsSplitScreen() and -50 or 0
+		self.openhint:SetPosition(is_left_aligned and 28 or -28, 34 + HEIGHT / 2 + y_offset + 40)
+
 
 		self:RefreshControllers(TheInput:ControllerAttached())
 		self.craftingmenu:DoFocusHookups()
 
 		self.is_left_aligned = is_left_aligned
+	end
 
-		if GetModConfigData("TAB_SUPPORT") then
-			self.GetRecipeState = function(self, recipe_name)
-				return (recipe_name ~= nil and string.find(recipe_name, "filter_")) and { meta = {} } or
-						self.valid_recipes[recipe_name]
-			end
+	if GetModConfigData("TAB_SUPPORT") then
+		self.GetRecipeState = function(self, recipe_name)
+			return (recipe_name ~= nil and string.find(recipe_name, "filter_")) and { meta = {} } or
+					self.valid_recipes[recipe_name]
 		end
-	end)
-end
+	end
+end)
 
 AddClassPostConstruct("craftingmenuprofile", function(self)
 	if GetModConfigData("CHR_PINBAR") then
