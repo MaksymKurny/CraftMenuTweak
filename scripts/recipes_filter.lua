@@ -339,6 +339,7 @@ else                    --- Old/New mode ---
 		"birdtrap",
 		"bugnet",
 		"thulecitebugnet",
+		"gestalt_cage",
 		"fishingrod",
 		"oceanfishingrod",
 		"monkeyball",
@@ -484,10 +485,14 @@ else                    --- Old/New mode ---
 		"boat_magnet_kit",
 		"boat_magnet_beacon",
 
+		"flotationcushion",
+
 		"dock_kit",
 		"dock_woodposts_item",
 		"tar_extractor", "porto_tar_extractor", -- IA TE
 		"sea_yard", "porto_sea_yard",         -- IA TE
+
+		"wagpunk_floor_kit",
 
 		"chesspiece_anchor_sketch",
 	}

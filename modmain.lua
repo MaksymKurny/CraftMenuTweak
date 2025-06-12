@@ -242,6 +242,20 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 		end
 	end
 
+	local FGCOUNT_OFFSET_X = 0
+	local FGCOUNT_OFFSET_Y = -5
+	local function UpdateFGCount(fgcount, meta)
+			if meta.limitedamount then
+					fgcount:SetString(tostring(meta.limitedamount))
+					local parentwidth, parentheight = fgcount.parent:GetSize()
+					local fgwidth, fgheight = fgcount:GetRegionSize()
+					fgcount:SetPosition((fgwidth - parentwidth) * 0.5 + FGCOUNT_OFFSET_X, (parentheight - fgheight) * 0.5 - FGCOUNT_OFFSET_Y)
+					fgcount:Show()
+			else
+					fgcount:Hide()
+			end
+	end
+
 	self.MakeRecipeList = function(self, width, height)
 		local cell_size = 60
 		local row_w = cell_size
@@ -251,7 +265,7 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 		local atlas = resolvefilepath(CRAFTING_ATLAS)
 
 		local function ScrollWidgetsCtor(context, index)
-			local w = Widget("recipe-cell-" .. index)
+			local w = Widget("crafting-cell-" .. index)
 
 			w:SetScale(0.475)
 
@@ -376,6 +390,8 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 			w.bg = w.cell_root:AddChild(Image(atlas, "slot_bg.tex"))
 			w.item_img = w.bg:AddChild(Image("images/global.xml", "square.tex"))
 			w.fg = w.bg:AddChild(Image("images/global.xml", "square.tex"))
+			w.fgcount = w.item_img:AddChild(Text(NUMBERFONT, 32))
+			w.fgcount:Hide()
 			w.bg:MoveToBack()
 
 			if GetModConfigData("CRAFT_COUNT") then
@@ -427,27 +443,33 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 				if meta.build_state == "buffered" then
 					widget.bg:SetTexture(atlas, "slot_bg_buffered.tex")
 					widget.fg:Hide()
+					UpdateFGCount(widget.fgcount, meta)
 				elseif meta.build_state == "prototype" and meta.can_build then
 					widget.bg:SetTexture(atlas, "slot_bg_prototype.tex")
 					widget.fg:SetTexture(atlas, "slot_fg_prototype.tex")
 					widget.fg:Show()
+					widget.fgcount:Hide()
 				elseif meta.can_build then
 					widget.bg:SetTexture(atlas, "slot_bg.tex")
 					widget.fg:Hide()
+					UpdateFGCount(widget.fgcount, meta)
 				elseif meta.build_state == "hint" then
 					widget.bg:SetTexture(atlas, "slot_bg_missing_mats.tex")
 					widget.item_img:SetTint(0.7, 0.7, 0.7, 1)
 					widget.fg:SetTexture(atlas, "slot_fg_lock.tex")
 					widget.fg:Show()
+					widget.fgcount:Hide()
 				elseif meta.build_state == "no_ingredients" or meta.build_state == "prototype" then
 					widget.bg:SetTexture(atlas, "slot_bg_missing_mats.tex")
 					widget.item_img:SetTint(0.7, 0.7, 0.7, 1)
 					widget.fg:Hide()
+					UpdateFGCount(widget.fgcount, meta)
 				else
 					widget.bg:SetTexture(atlas, "slot_bg_missing_mats.tex")
 					widget.item_img:SetTint(0.7, 0.7, 0.7, 1)
 					widget.fg:SetTexture(atlas, "slot_fg_lock.tex")
 					widget.fg:Show()
+					widget.fgcount:Hide()
 				end
 
 				widget:Enable()
