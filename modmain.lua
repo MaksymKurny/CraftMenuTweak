@@ -846,7 +846,7 @@ AddClassPostConstruct("widgets/redux/craftingmenu_pinslot", function(self, owner
 
 			self.CreateFilterRecipe = function(self)
 				local recipe = {
-					name = self.recipe_name,
+					name = self.recipe_name and self.recipe_name or '',
 					ingredients = {},
 					tech_ingredients = {},
 					character_ingredients = {}

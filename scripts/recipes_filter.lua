@@ -99,6 +99,8 @@ else                    --- Old/New mode ---
 		"hammer",
 		"pitchfork",
 		"goldenpitchfork",
+
+		"moonglassaxe",
 		"antlionhat",
 
 		"wateringcan",
@@ -225,6 +227,7 @@ else                    --- Old/New mode ---
 		"cork_bat", --TE
 
 		"hambat",
+		"glasscutter",
 		"nightstick",
 		"whip",
 		"armorgrass",
@@ -532,6 +535,7 @@ else                    --- Old/New mode ---
 
 		"fence_gate_item",
 		"fence_item",
+		"fence_electric_item",
 		"wall_hay_item",
 		"wall_wood_item",
 		"wall_stone_item",
