@@ -6,6 +6,7 @@ local Grid = require "widgets/grid"
 local ThreeSlice = require "widgets/threeslice"
 local qcmode = GetModConfigData("FAST_CRAFT")
 local TEMPLATES = require "widgets/redux/templates"
+local RecipeTile = require("widgets/recipetile")
 local CraftingMenuIngredients = require "widgets/redux/craftingmenu_ingredients"
 
 Assets = {
@@ -223,6 +224,7 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 			for i, recipe_name in metaipairs(self.sort_class) do
 				local data = self.crafting_hud.valid_recipes[recipe_name]
 				if data and
+            (not data.meta.hide_due_to_missing_skin) and
 						(show_hidden or data.meta.build_state ~= "hide") and
 						(show_forced_hints or data.meta.build_state ~= "hint" or not data.recipe.force_hint) and
 						IsRecipeValidForFilter(self, recipe_name, filter_recipes) and
@@ -419,7 +421,7 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 				----------- Edit -----------
 				local skin_name
 				if Profile:GetLastUsedSkinForItem(recipe.name) ~= nil and GetModConfigData("CRAFT_SKIN") then
-					skin_name = Profile:GetLastUsedSkinForItem(recipe.name) .. ".tex"
+					skin_name = Profile:GetLastUsedSkinForItem(recipe.name)
 				end
 
 				if GetModConfigData("CRAFT_COUNT") then
@@ -432,13 +434,8 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 					end
 				end
 				----------------------------
-				local image = skin_name or (recipe.imagefn ~= nil and recipe.imagefn() or recipe.image)
 
-				widget.item_img:SetTexture(GetInventoryItemAtlas(image, true) or recipe:GetAtlas(), image,
-					image ~= recipe.image and recipe.image or nil)
-				widget.item_img:ScaleToSize(item_size, item_size)
-
-				widget.item_img:SetTint(1, 1, 1, 1)
+				local tint = 1
 
 				if meta.build_state == "buffered" then
 					widget.bg:SetTexture(atlas, "slot_bg_buffered.tex")
@@ -455,22 +452,25 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 					UpdateFGCount(widget.fgcount, meta)
 				elseif meta.build_state == "hint" then
 					widget.bg:SetTexture(atlas, "slot_bg_missing_mats.tex")
-					widget.item_img:SetTint(0.7, 0.7, 0.7, 1)
+					tint = .7
 					widget.fg:SetTexture(atlas, "slot_fg_lock.tex")
 					widget.fg:Show()
 					widget.fgcount:Hide()
 				elseif meta.build_state == "no_ingredients" or meta.build_state == "prototype" then
 					widget.bg:SetTexture(atlas, "slot_bg_missing_mats.tex")
-					widget.item_img:SetTint(0.7, 0.7, 0.7, 1)
+					tint = .7
 					widget.fg:Hide()
 					UpdateFGCount(widget.fgcount, meta)
 				else
 					widget.bg:SetTexture(atlas, "slot_bg_missing_mats.tex")
-					widget.item_img:SetTint(0.7, 0.7, 0.7, 1)
+					tint = .7
 					widget.fg:SetTexture(atlas, "slot_fg_lock.tex")
 					widget.fg:Show()
 					widget.fgcount:Hide()
 				end
+
+				RecipeTile.sSetImageFromRecipe(widget.item_img, recipe, skin_name, tint)
+				widget.item_img:ScaleToSize(item_size, item_size)
 
 				widget:Enable()
 			else
@@ -846,7 +846,7 @@ AddClassPostConstruct("widgets/redux/craftingmenu_pinslot", function(self, owner
 
 			self.CreateFilterRecipe = function(self)
 				local recipe = {
-					name = self.recipe_name,
+					name = self.recipe_name and self.recipe_name or 'filter',
 					ingredients = {},
 					tech_ingredients = {},
 					character_ingredients = {}

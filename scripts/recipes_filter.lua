@@ -99,6 +99,8 @@ else                    --- Old/New mode ---
 		"hammer",
 		"pitchfork",
 		"goldenpitchfork",
+
+		"moonglassaxe",
 		"antlionhat",
 
 		"wateringcan",
@@ -191,7 +193,7 @@ else                    --- Old/New mode ---
 		"papyrus",
 		"fabric",
 		"limestonenugget", "limestone", --AI TE
-		"goldnugget",
+		"goldnugget", --AI TE
 		"waxpaper",
 		"beeswax",
 
@@ -200,7 +202,7 @@ else                    --- Old/New mode ---
 		"marblebean",
 		-- "clawpalmtree_sapling", --TE
 
-		"ice",
+		"ice", --AI TE
 		"ia_messagebottleempty", "messagebottleempty1", --IA TE
 		"bearger_fur",
 		"nightmarefuel",
@@ -225,6 +227,7 @@ else                    --- Old/New mode ---
 		"cork_bat", --TE
 
 		"hambat",
+		"glasscutter",
 		"nightstick",
 		"whip",
 		"armorgrass",
@@ -295,6 +298,7 @@ else                    --- Old/New mode ---
 		"moonstorm_goggleshat",
 		"brainjellyhat",
 		"watermelonhat",
+		"pumpkinhat",
 		"pithhat",      --TE
 		"thunderhat",   --TE
 		"shark_teethhat", --IA
@@ -512,6 +516,7 @@ else                    --- Old/New mode ---
 		"yotr_rabbitshrine",
 		"yotd_dragonshrine",
 		"yots_snakeshrine",
+		"yoth_knightshrine",
 
 		"mermhouse_crafted",
 		"mermthrone_construction",
@@ -532,6 +537,7 @@ else                    --- Old/New mode ---
 
 		"fence_gate_item",
 		"fence_item",
+		"fence_electric_item",
 		"wall_hay_item",
 		"wall_wood_item",
 		"wall_stone_item",
@@ -596,6 +602,7 @@ else                    --- Old/New mode ---
 		"turf_ruinstrim",
 		"turf_ruinstrim_glow",
 		"turf_archive",
+		"turf_vault",
 
 		"turf_snakeskin",             -- ?`
 		"turf_beard_hair",            --?
@@ -615,6 +622,7 @@ else                    --- Old/New mode ---
 		"turf_rocky",
 		"turf_cave",
 		"turf_underrock",
+		"turf_vent",
 		"turf_sinkhole",
 		"turf_marsh",
 		"turf_mud",
@@ -638,13 +646,19 @@ else                    --- Old/New mode ---
 		"ruinsrelic_chair",
 		"ruinsrelic_table",
 
+		"vaultrelic_bowl",
+		"vaultrelic_vase",
+		"vaultrelic_planter",
+
 		"phonograph",
 		"record",
+		"w_radio",
 
 		"wood_chair",
 		"stone_chair",
 		"wood_stool",
 		"stone_stool",
+		"hermit_chair_rocking",
 		"wood_table_round",
 		"stone_table_round",
 		"wood_table_square",

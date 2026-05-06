@@ -1,6 +1,6 @@
 name = "Craft Menu Tweak"
 author = "Godless"
-version = "6.71"
+version = "6.73"
 description = [[
 Customize the crafting menu to your taste, open the mod settings and turn on the necessary functions.
 Налаштуйте меню крафту на свій смак, відкривай налаштування моду і вмикай необхідні функції.
