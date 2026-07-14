@@ -56,6 +56,9 @@ end
 -- Icons and old/new mode --
 modimport("scripts/recipes_filter")
 
+-- Deep craft ingredient chain lookup --
+modimport("scripts/deep_craft")
+
 -- Scrapbook Button --
 AddClassPostConstruct("widgets/redux/craftingmenu_details",
 	function(self, owner, parent_widget, panel_width, panel_height)
@@ -624,6 +627,28 @@ if GetModConfigData("CRAFT_ING") then
 					self.onclick = function()
 						if self.ingredient_recipe ~= nil and meta.can_build then
 							DoRecipeClick(self.owner, self.ingredient_recipe.recipe, self.skin_name)
+						end
+					end
+				elseif GetModConfigData("DEEP_CRAFT_ING") then
+					-- ingredient itself can't be built yet (missing its own sub-ingredients) --
+					-- find the closest thing in its ingredient chain we can craft right now --
+					local deep_recipe = FindDeepCraftIngredient(owner, ingredient_recipe.recipe)
+					if deep_recipe ~= nil then
+						self.ingredient_recipe = ingredient_recipe
+						self.deep_craft_recipe = deep_recipe
+
+						self.fg = self.image:AddChild(Image(crafting_atlas, "ingredient_craft.tex"))
+						self.fg:ScaleToSize(self.ing:GetSize())
+
+						tooltip = tooltip ..
+								"\n" ..
+								TheInput:GetLocalizedControl(TheInput:GetControllerID(), CONTROL_PRIMARY) ..
+								": " ..
+								(deep_recipe.actionstr ~= nil and STRINGS.UI.CRAFTING.RECIPEACTION[deep_recipe.actionstr] or STRINGS.UI.CRAFTING.BUILD) ..
+								" " .. STRINGS.NAMES[string.upper(deep_recipe.product)]
+
+						self.onclick = function()
+							DoRecipeClick(self.owner, self.deep_craft_recipe, Profile:GetLastUsedSkinForItem(self.deep_craft_recipe.product))
 						end
 					end
 				end

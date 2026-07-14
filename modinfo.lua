@@ -1,6 +1,6 @@
 name = "Craft Menu Tweak"
 author = "Godless"
-version = "6.73"
+version = "6.74"
 description = [[
 Customize the crafting menu to your taste, open the mod settings and turn on the necessary functions.
 Налаштуйте меню крафту на свій смак, відкривай налаштування моду і вмикай необхідні функції.
@@ -31,6 +31,7 @@ local LOCALE =
 		TAB_RECIPES = "Tabs recipes",
 		SCRAP_BOOK = "Scrap book button",
 		CRAFT_ING = "Сraft ingredients",
+		DEEP_CRAFT_ING = "Deep craft ingredients",
 		COMP_PINBAR = "Compact pinn bar",
 		FIX_PINBAR = "Fixed pinn bar",
 		CHR_PINBAR = "Character pinn bar",
@@ -54,6 +55,7 @@ local LOCALE =
 		TAB_RECIPES_HOVER = "Enables recipe support for tabs, tabs support must also be active",
 		SCRAP_BOOK_HOVER = "Adds a small button that, when clicked, will open a Scrapbook with information about that item.",
 		CRAFT_ING_HOVER = "Improved version of the original.",
+		DEEP_CRAFT_ING_HOVER = "Clicking an ingredient that can't be built yet will instead craft the closest missing sub-ingredient in its chain (click repeatedly to work through the chain). Requires \"Сraft ingredients\" to be enabled.",
 		COMP_PINBAR_HOVER = "Makes it more compact and makes 12 pinn slots.",
 		FIX_PINBAR_HOVER = "Makes it fixed by separating it from the crafting menu.",
 		CHR_PINBAR_HOVER = "Adds an additional tab that will change depending on the selected character.",
@@ -90,6 +92,7 @@ local LOCALE =
 		TAB_RECIPES = "Рецепты вкладок",
 		SCRAP_BOOK = "Кнопка открытия скрепбука",
 		CRAFT_ING = "Крафт ингридиентов",
+		DEEP_CRAFT_ING = "Глубокий крафт ингредиентов",
 		COMP_PINBAR = "Компактная пин панель",
 		FIX_PINBAR = "Фиксированая пин панель",
 		CHR_PINBAR = "Пин панель персонажа",
@@ -111,6 +114,7 @@ local LOCALE =
 		TAB_RECIPES_HOVER = "Добавляет поддержку рецептов для вкладок, поддержка владок должна быть включена",
 		SCRAP_BOOK_HOVER = "Добавляет кнопку по нажатию на которую откроется книга с доп. информацией.",
 		CRAFT_ING_HOVER = "Улучшенная версия оригинала.",
+		DEEP_CRAFT_ING_HOVER = "Клик по ингредиенту, который ещё нельзя скрафтить, будет крафтить ближайший недостающий под-ингредиент в цепочке (кликайте повторно, чтобы пройти всю цепочку). Требует включённой опции \"Крафт ингридиентов\".",
 		COMP_PINBAR_HOVER = "Сделает его компактным (12 слотов для пинов).",
 		FIX_PINBAR_HOVER = "Фиксирует, отделяя от меню крафта.",
 		CHR_PINBAR_HOVER = "Добавляет дополнительную вкладку которая будет меняться взависимости от выбраного персонажа.",
@@ -148,6 +152,7 @@ local LOCALE =
 		TAB_RECIPES = "Tabs模组配方",
 		SCRAP_BOOK = "剪贴簿按钮",
 		CRAFT_ING = "材料栏视觉改善",
+		DEEP_CRAFT_ING = "材料链式制作",
 		COMP_PINBAR = "快捷制作栏更多栏",
 		FIX_PINBAR = "快捷制作栏固定位置",
 		CHR_PINBAR = "固定角色栏",
@@ -171,6 +176,7 @@ local LOCALE =
 		TAB_RECIPES_HOVER = "启用\"Tabs\"的配方支持，必须同时启用Tabs模组支持。",
 		SCRAP_BOOK_HOVER = "添加一个小按钮，单击后会打开剪贴簿，显示该物品的信息。",
 		CRAFT_ING_HOVER = "改善制作栏下方材料栏的视觉效果",
+		DEEP_CRAFT_ING_HOVER = "点击尚不能直接制作的材料时，将自动制作该材料链中最近缺失的子材料（重复点击可依次完成整条链）。需要启用「材料栏视觉改善」。",
 		COMP_PINBAR_HOVER = "最左侧的快捷制作栏从原来的9格变为12格",
 		FIX_PINBAR_HOVER = "最左侧的快捷制作栏在打开制作栏后还在最左侧，需要打开窄的三行制作栏",
 		CHR_PINBAR_HOVER = "添加一个额外的选项卡，会根据所选角色更改。",
@@ -243,6 +249,7 @@ configuration_options =
 	MakeOption("TAB_SUPPORT", true),
 	MakeOption("TAB_RECIPES"),
 	MakeOption("CRAFT_ING", true),
+	MakeOption("DEEP_CRAFT_ING", true),
 	MakeOption("CRAFT_COUNT"),
 	MakeOption("FAV_SHOW_ALL", true),
 	MakeOption("COMP_PINBAR"),
