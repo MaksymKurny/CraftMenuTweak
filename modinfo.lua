@@ -1,6 +1,6 @@
 name = "Craft Menu Tweak"
 author = "Godless"
-version = "6.74"
+version = "6.75"
 description = [[
 Customize the crafting menu to your taste, open the mod settings and turn on the necessary functions.
 Налаштуйте меню крафту на свій смак, відкривай налаштування моду і вмикай необхідні функції.
@@ -43,6 +43,7 @@ local LOCALE =
 		ICON_ORG = "Origin",
 		FAV_SHOW_ALL = "Show all recipe",
 		CRAFT_COUNT = "Num to craft",
+		UNPIN_RMB = "Unpin via RMB",
 
 		ICON_PACK_HOVER = "Appearance of the main filter icons.",
 		CHAR_ICON_HOVER = "Changes the avatar icon to the character tab icon.",
@@ -64,6 +65,7 @@ local LOCALE =
 		RECIPE_SUP_HOVER = "If you do not see recipes from the mod in the filters, enable this option",
 		FAV_SHOW_AL_HOVER = "Show all recipe in favorite filter.",
 		CRAFT_COUNT_HOVER = "Displays information about the number of items you will receive after crafting.",
+		UNPIN_RMB_HOVER = "Unpin a pinned recipe by right-clicking its unpin (x) icon instead of left-clicking it.",
 
 		ICON_OLD_HOVER = "Icons in the style of the old menu.",
 		ICON_BLACK_HOVER = "Icons in black style and nothing more.",
@@ -104,6 +106,7 @@ local LOCALE =
 		ICON_ORG = "Оригинальный",
 		FAV_SHOW_ALL = "Показать все рецепты",
 		CRAFT_COUNT = "Количество при крафте",
+		UNPIN_RMB = "Открепление по ПКМ",
 
 		ICON_PACK_HOVER = "Внешний вид основных значков фильтров.",
 		CHAR_ICON_HOVER = "Заменяет значок аватара на значок вкладки персонажа.",
@@ -123,6 +126,7 @@ local LOCALE =
 		RECIPE_SUP_HOVER = "Если у вас не отображаются рецепты на вкладках, вслючите авто поддержку",
 		FAV_SHOW_AL_HOVER = "Показывает все рецепты в фильтре избранного.",
 		CRAFT_COUNT_HOVER = "Отображает информацию о количестве предметов, которые вы получите после крафта.",
+		UNPIN_RMB_HOVER = "Открепляет закреплённый рецепт по клику ПКМ на иконке открепления (крестик) вместо ЛКМ.",
 
 		ICON_OLD_HOVER = "Значки в стиле старого меню.",
 		ICON_BLACK_HOVER = "Значки в черном стиле и ничего более.",
@@ -164,6 +168,7 @@ local LOCALE =
 		ICON_ORG = "当前风格",
 		FAV_SHOW_ALL = "显示所有配方",
 		CRAFT_COUNT = "制作数量信息",
+		UNPIN_RMB = "右键取消固定",
 
 		ICON_PACK_HOVER = "选项卡图标的视觉效果",
 		CHAR_ICON_HOVER = "针对选项卡中的角色头像调整视觉效果",
@@ -185,6 +190,7 @@ local LOCALE =
 		RECIPE_SUP_HOVER = "如果制作栏里找不到模组配方，打开此功能",
 		FAV_SHOW_AL_HOVER = "在收藏选项卡中显示所有配方。",
 		CRAFT_COUNT_HOVER = "显示制作后将获得的物品数量信息。",
+		UNPIN_RMB_HOVER = "通过右键点击取消固定图标（叉号）来取消固定配方，而不是左键点击。",
 
 		ICON_OLD_HOVER = "传统风格",
 		ICON_BLACK_HOVER = "黑色风格",
@@ -251,6 +257,7 @@ configuration_options =
 	MakeOption("CRAFT_ING", true),
 	MakeOption("DEEP_CRAFT_ING", true),
 	MakeOption("CRAFT_COUNT"),
+	MakeOption("UNPIN_RMB"),
 	MakeOption("FAV_SHOW_ALL", true),
 	MakeOption("COMP_PINBAR"),
 	MakeOption("FIX_PINBAR"),

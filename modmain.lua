@@ -100,6 +100,18 @@ AddClassPostConstruct("widgets/redux/craftingmenu_details",
 			end
 
 
+			-- description set 3 maxlines
+			if self.root_left then
+				for child in pairs(self.root_left:GetChildren()) do
+					if child ~= self.namestring and child:is_a(Text) then
+						local width = self.panel_width / 2
+						child:SetMultilineTruncatedString(
+							STRINGS.RECIPE_DESC[string.upper(data.recipe.description or data.recipe.product)],
+							3, width, nil, false, true)
+					end
+				end
+			end
+
 			-- Recipe in tabs pin Button
 			if GetModConfigData("TAB_SUPPORT") and GetModConfigData("TAB_RECIPES") and self.from_filter_name ~= "FAVORITES" and self.from_filter_name ~= "CHARACTER" and self.from_filter_name ~= "CRAFTING_STATION" then
 				local function GetRepiceIndex(self)
@@ -227,7 +239,7 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 			for i, recipe_name in metaipairs(self.sort_class) do
 				local data = self.crafting_hud.valid_recipes[recipe_name]
 				if data and
-            (not data.meta.hide_due_to_missing_skin) and
+						(not data.meta.hide_due_to_missing_skin) and
 						(show_hidden or data.meta.build_state ~= "hide") and
 						(show_forced_hints or data.meta.build_state ~= "hint" or not data.recipe.force_hint) and
 						IsRecipeValidForFilter(self, recipe_name, filter_recipes) and
@@ -250,15 +262,16 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 	local FGCOUNT_OFFSET_X = 0
 	local FGCOUNT_OFFSET_Y = -5
 	local function UpdateFGCount(fgcount, meta)
-			if meta.limitedamount then
-					fgcount:SetString(tostring(meta.limitedamount))
-					local parentwidth, parentheight = fgcount.parent:GetSize()
-					local fgwidth, fgheight = fgcount:GetRegionSize()
-					fgcount:SetPosition((fgwidth - parentwidth) * 0.5 + FGCOUNT_OFFSET_X, (parentheight - fgheight) * 0.5 - FGCOUNT_OFFSET_Y)
-					fgcount:Show()
-			else
-					fgcount:Hide()
-			end
+		if meta.limitedamount then
+			fgcount:SetString(tostring(meta.limitedamount))
+			local parentwidth, parentheight = fgcount.parent:GetSize()
+			local fgwidth, fgheight = fgcount:GetRegionSize()
+			fgcount:SetPosition((fgwidth - parentwidth) * 0.5 + FGCOUNT_OFFSET_X,
+				(parentheight - fgheight) * 0.5 - FGCOUNT_OFFSET_Y)
+			fgcount:Show()
+		else
+			fgcount:Hide()
+		end
 	end
 
 	self.MakeRecipeList = function(self, width, height)
@@ -423,8 +436,11 @@ AddClassPostConstruct("widgets/redux/craftingmenu_widget", function(self, owner,
 				widget.cell_root:Show()
 				----------- Edit -----------
 				local skin_name
-				if Profile:GetLastUsedSkinForItem(recipe.name) ~= nil and GetModConfigData("CRAFT_SKIN") then
-					skin_name = Profile:GetLastUsedSkinForItem(recipe.name)
+				if GetModConfigData("CRAFT_SKIN") then
+					local last_skin = Profile:GetLastUsedSkinForItem(recipe.name)
+					if last_skin ~= nil and TheInventory:CheckOwnership(last_skin) then
+						skin_name = last_skin
+					end
 				end
 
 				if GetModConfigData("CRAFT_COUNT") then
@@ -648,7 +664,8 @@ if GetModConfigData("CRAFT_ING") then
 								" " .. STRINGS.NAMES[string.upper(deep_recipe.product)]
 
 						self.onclick = function()
-							DoRecipeClick(self.owner, self.deep_craft_recipe, Profile:GetLastUsedSkinForItem(self.deep_craft_recipe.product))
+							DoRecipeClick(self.owner, self.deep_craft_recipe,
+								Profile:GetLastUsedSkinForItem(self.deep_craft_recipe.product))
 						end
 					end
 				end
@@ -800,6 +817,27 @@ AddClassPostConstruct("widgets/redux/craftingmenu_pinslot", function(self, owner
 		self.item_img.numtogive = self.item_img:AddChild(Text(UIFONT, 35, "", UICOLOURS.GOLD_UNIMPORTANT))
 		self.item_img.numtogive:SetPosition(25, -25)
 		self.item_img.numtogive:Hide()
+	end
+
+	----------- Edit: unpin ("x") via right-click instead of left-click -----------
+	if GetModConfigData("UNPIN_RMB") then
+		local _UnpinOnClick = self.craft_button.onclick
+		self.craft_button.onclick = function()
+			if self.unpin_button.focus then
+				return -- swallow left-click over the unpin icon, RMB handles it below
+			end
+			_UnpinOnClick()
+		end
+
+		local _CraftButtonOnControl = self.craft_button.OnControl
+		self.craft_button.OnControl = function(_self, control, down)
+			if not TheInput:ControllerAttached() and control == CONTROL_SECONDARY and down and
+					self.unpin_button.focus and self.recipe_name ~= nil then
+				self:SetRecipe(nil, nil)
+				return true
+			end
+			return _CraftButtonOnControl(_self, control, down)
+		end
 	end
 
 	if GetModConfigData("TAB_SUPPORT") then
